@@ -1,8 +1,9 @@
 package fpis.code.chapter2
 
-import fpis.code.chapter2.Main.{fib, isSorted}
+import fpis.code.chapter2.Main._
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.{convertToAnyShouldWrapper, equal}
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import org.scalatest.prop.TableFor2
@@ -51,6 +52,26 @@ class MainTest extends AnyFunSuite {
     forAll(arrays) { (input, expected) =>
       isSorted(input)((x, y) => x <= y) should equal(expected)
     }
+  }
+
+  test("Main.curry") {
+    val f = (a: Int, b: Int) => a + b
+    f(2, 3) should equal(curry(f)(2)(3))
+  }
+
+  test("Main.uncurry") {
+    val f = (a: Int, b: Int) => a + b
+    uncurry(curry(f))(2, 3) should equal(f(2, 3))
+  }
+
+  test("Main.compose") {
+    val g = (x: Int) => x + 1
+    val f = (x: Int) => x * 2
+    compose(f, g)(5) should be(f(g(5)))
+
+    // Scala Function1 also provides `compose` and `andThen`
+    (f compose g) (5) should be(f(g(5))) // `compose` is f(g(x))
+    (f andThen g) (5) should be(g(f(5))) // `andThen` is g(f(x))
   }
 
 }
