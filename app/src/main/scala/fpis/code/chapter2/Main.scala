@@ -13,4 +13,14 @@ object Main {
     go(n, 0, 1)
   }
 
+  def isSorted[A](as: Array[A])(ordered: (A, A) => Boolean): Boolean = {
+    @tailrec
+    def go(as: Array[A], i: Int): Boolean =
+      if (i >= as.length - 1) true
+      else if (ordered(as(i), as(i + 1))) go(as, i + 1)
+      else false
+
+    go(as, 0)
+  }
+
 }
