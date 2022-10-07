@@ -70,8 +70,8 @@ class MainTest extends AnyFunSuite {
     compose(f, g)(5) should be(f(g(5)))
 
     // Scala Function1 also provides `compose` and `andThen`
-    (f compose g) (5) should be(f(g(5))) // `compose` is f(g(x))
-    (f andThen g) (5) should be(g(f(5))) // `andThen` is g(f(x))
+    (f compose g)(5) should be(f(g(5))) // `compose` is f(g(x))
+    (f andThen g)(5) should be(g(f(5))) // `andThen` is g(f(x))
   }
 
 }
