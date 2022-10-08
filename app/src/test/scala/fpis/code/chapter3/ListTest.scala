@@ -57,4 +57,38 @@ class ListTest extends AnyFunSuite {
     List.init(List(1, 2, 3)) should be(List(1, 2))
   }
 
+  test("List.foldRight") {
+    List.foldRight(Nil: List[Int], 0)(_ + _) should be(0)
+    List.foldRight(List(1), 0)(_ + _) should be(1)
+    List.foldRight(List(1, 2, 3), 0)(_ + _) should be(1 + 2 + 3)
+  }
+
+  ignore("List.foldRight overflows for big lists") {
+    // implementation is not tail recursive, so not stack-safe
+    val zeros = List(SList.fill(10000)(0): _*)
+    List.foldRight(zeros, 0)(_ + _) should be(0)
+  }
+
+  test("Exercise 3.8") {
+    val l = List.foldRight(List(1, 2, 3), Nil: List[Int])(Cons(_, _))
+    l should be(List(1, 2, 3))
+  }
+
+  test("List.length") {
+    List.length(Nil) should be(0)
+    List.length(List(1)) should be(1)
+    List.length(List(1, 2, 3)) should be(3)
+  }
+
+  test("List.foldLeft") {
+    List.foldLeft(Nil: List[Int], 0)(_ + _) should be(0)
+    List.foldLeft(List(1), 0)(_ + _) should be(1)
+    List.foldLeft(List(1, 2, 3), 0)(_ + _) should be(1 + 2 + 3)
+  }
+
+  test("List.foldLeft is stack-safe") {
+    val zeros = List(SList.fill(10000)(0): _*)
+    List.foldLeft(zeros, 0)(_ + _) should be(0)
+  }
+
 }

@@ -16,14 +16,17 @@ object List {
   }
 
   def product(ds: List[Double]): Double = ds match {
-    case Nil          => 1.0
-    case Cons(0.0, _) => 0.0
-    case Cons(x, xs)  => x * product(xs)
+    case Nil         => 1.0
+    case Cons(x, xs) => x * product(xs)
   }
 
-  def apply[A](as: A*): List[A] = // variadic function syntax
+  // This implementation is not stack-safe
+  def apply_[A](as: A*): List[A] = // variadic function syntax
     if (as.isEmpty) Nil
     else Cons(as.head, apply(as.tail: _*))
+
+  def apply[A](as: A*): List[A] =
+    as.reverse.foldLeft(Nil: List[A])((b, a) => Cons(a, b))
 
   def tail[A](as: List[A]): List[A] = as match {
     case Nil         => Nil
@@ -56,6 +59,21 @@ object List {
     case Nil          => Nil
     case Cons(_, Nil) => Nil
     case Cons(x, xs)  => Cons(x, init(xs))
+  }
+
+  def foldRight[A, B](as: List[A], z: B)(f: (A, B) => B): B = as match {
+    case Nil         => z
+    case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+  }
+
+  def sumFR(ints: List[Int]): Int = foldRight(ints, 0)(_ + _)
+
+  def length[A](as: List[A]): Int = foldRight(as, 0)((_, b) => b + 1)
+
+  @tailrec
+  def foldLeft[A, B](as: List[A], z: B)(f: (B, A) => B): B = as match {
+    case Nil         => z
+    case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
   }
 
 }
