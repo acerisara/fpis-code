@@ -104,4 +104,42 @@ class ListTest extends AnyFunSuite {
     List.appendFL(List(1), List(2, 3)) should be(List(1, 2, 3))
   }
 
+  test("List.flatten") {
+    List.flatten(List(Nil)) should be(Nil)
+    List.flatten(List(List(1), List(2), List(3))) should be(List(1, 2, 3))
+    List.flatten(List(List(1, 2), List(3, 4), List(5, 6))) should be(
+      List(1, 2, 3, 4, 5, 6)
+    )
+  }
+
+  test("List.plus1") {
+    List.plus1(Nil) should be(Nil)
+    List.plus1(List(1)) should be(List(2))
+    List.plus1(List(1, 2)) should be(List(2, 3))
+  }
+
+  test("List.doubleToString") {
+    List.doubleToString(Nil) should be(Nil)
+    List.doubleToString(List(1.0)) should be(List("1.0"))
+    List.doubleToString(List(1.0, 2.0, 3.0)) should be(
+      List("1.0", "2.0", "3.0")
+    )
+  }
+
+  test("List.map") {
+    List.map(Nil: List[Double])(_.toString) should be(Nil)
+    List.map(List(1.0))(_.toString) should be(List("1.0"))
+    List.map(List(1.0, 2.0, 3.0))(_.toString) should be(
+      List("1.0", "2.0", "3.0")
+    )
+  }
+
+  test("List.filter") {
+    val even = (x: Int) => x % 2 == 0
+
+    List.filter(Nil: List[Int])(even) should be(Nil)
+    List.filter(List(1))(even) should be(Nil)
+    List.filter(List(1, 2, 3, 4, 5, 6))(even) should be(List(2, 4, 6))
+  }
+
 }

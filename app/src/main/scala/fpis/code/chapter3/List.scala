@@ -90,6 +90,28 @@ object List {
   def appendFL[A](a1: List[A], a2: List[A]): List[A] =
     foldLeft(reverse(a1), a2)((b, a) => Cons(a, b))
 
-  def flatten[A](ls: List[List[A]]): List[A] = ???
+  def flatten[A](ls: List[List[A]]): List[A] =
+    foldLeft(ls, Nil: List[A])(appendFL)
+
+  def plus1(ints: List[Int]): List[Int] = ints match {
+    case Nil         => Nil
+    case Cons(x, xs) => Cons(x + 1, plus1(xs))
+  }
+
+  def doubleToString(ds: List[Double]): List[String] = ds match {
+    case Nil         => Nil
+    case Cons(x, xs) => Cons(x.toString, doubleToString(xs))
+  }
+
+  def map[A, B](as: List[A])(f: A => B): List[B] = as match {
+    case Nil         => Nil
+    case Cons(x, xs) => Cons(f(x), map(xs)(f))
+  }
+
+  def filter[A](as: List[A])(f: A => Boolean): List[A] = as match {
+    case Nil                 => Nil
+    case Cons(x, xs) if f(x) => Cons(x, filter(xs)(f))
+    case Cons(_, xs)         => filter(xs)(f)
+  }
 
 }
