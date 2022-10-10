@@ -91,7 +91,7 @@ object List {
     foldLeft(reverse(a1), a2)((b, a) => Cons(a, b))
 
   def flatten[A](ls: List[List[A]]): List[A] =
-    foldLeft(ls, Nil: List[A])(appendFL)
+    foldRight(ls, Nil: List[A])(append)
 
   def plus1(ints: List[Int]): List[Int] = ints match {
     case Nil         => Nil
