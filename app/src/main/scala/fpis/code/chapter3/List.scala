@@ -33,6 +33,11 @@ object List {
     case Cons(_, xs) => xs
   }
 
+  def headOr[A](as: List[A], default: A): A = as match {
+    case Nil        => default
+    case Cons(x, _) => x
+  }
+
   def setHead[A](x: A, as: List[A]): List[A] = as match {
     case Nil         => Nil
     case Cons(_, xs) => Cons(x, xs)
@@ -115,6 +120,33 @@ object List {
     case Nil                 => Nil
     case Cons(x, xs) if f(x) => Cons(x, filter(xs)(f))
     case Cons(_, xs)         => filter(xs)(f)
+  }
+
+  def plus1FR(ints: List[Int]): List[Int] =
+    foldRight(ints, Nil: List[Int])((a, b) => Cons(a + 1, b))
+
+  def doubleToStringFR(ds: List[Double]): List[String] =
+    foldRight(ds, Nil: List[String])((a, b) => Cons(a.toString, b))
+
+  def mapFR[A, B](as: List[A])(f: A => B): List[B] =
+    foldRight(as, Nil: List[B])((a, b) => Cons(f(a), b))
+
+  def filterFR[A](as: List[A])(f: A => Boolean): List[A] =
+    foldRight(as, Nil: List[A])((a, b) => if (f(a)) Cons(a, b) else b)
+
+  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
+    foldRight(as, Nil: List[B])((a, b) => append(f(a), b))
+
+  def filterFM[A](as: List[A])(f: A => Boolean): List[A] =
+    flatMap(as)(a => if (f(a)) List(a) else Nil)
+
+  def zipInts(i1: List[Int], i2: List[Int]): List[Int] = {
+    // TODO: WIP, handle corner cases, etc...
+    reverse(foldLeft(i1, (Nil: List[Int], i2))((b, a) => {
+      val acc = b._1
+      val i2_ = b._2
+      (Cons(a + headOr(i2_, 0), acc): List[Int], tail(i2_))
+    })._1)
   }
 
 }

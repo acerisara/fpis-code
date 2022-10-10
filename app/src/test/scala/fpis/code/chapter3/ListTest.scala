@@ -46,13 +46,6 @@ class ListTest extends AnyFunSuite {
     List.dropWhile(List(2, 2, 3, 4, 5))(even) should be(List(3, 4, 5))
   }
 
-  test("List.append") {
-    List.append(Nil, Nil) should be(Nil)
-    List.append(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
-    List.append(List(1, 2, 3), Nil) should be(List(1, 2, 3))
-    List.append(List(1), List(2, 3)) should be(List(1, 2, 3))
-  }
-
   test("List.init") {
     List.init(Nil) should be(Nil)
     List.init(List(1)) should be(Nil)
@@ -99,18 +92,21 @@ class ListTest extends AnyFunSuite {
     List.reverse(List(1, 2, 3)) should be(List(3, 2, 1))
   }
 
-  test("List.appendFL") {
-    List.appendFL(Nil, Nil) should be(Nil)
-    List.appendFL(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
-    List.appendFL(List(1, 2, 3), Nil) should be(List(1, 2, 3))
-    List.appendFL(List(1), List(2, 3)) should be(List(1, 2, 3))
-  }
+  test("List.append") {
+    List.append(Nil, Nil) should be(Nil)
+    List.append(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
+    List.append(List(1, 2, 3), Nil) should be(List(1, 2, 3))
+    List.append(List(1), List(2, 3)) should be(List(1, 2, 3))
 
-  test("List.appendFR") {
     List.appendFR(Nil, Nil) should be(Nil)
     List.appendFR(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
     List.appendFR(List(1, 2, 3), Nil) should be(List(1, 2, 3))
     List.appendFR(List(1), List(2, 3)) should be(List(1, 2, 3))
+
+    List.appendFL(Nil, Nil) should be(Nil)
+    List.appendFL(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
+    List.appendFL(List(1, 2, 3), Nil) should be(List(1, 2, 3))
+    List.appendFL(List(1), List(2, 3)) should be(List(1, 2, 3))
   }
 
   test("List.flatten") {
@@ -125,12 +121,22 @@ class ListTest extends AnyFunSuite {
     List.plus1(Nil) should be(Nil)
     List.plus1(List(1)) should be(List(2))
     List.plus1(List(1, 2)) should be(List(2, 3))
+
+    List.plus1FR(Nil) should be(Nil)
+    List.plus1FR(List(1)) should be(List(2))
+    List.plus1FR(List(1, 2)) should be(List(2, 3))
   }
 
   test("List.doubleToString") {
     List.doubleToString(Nil) should be(Nil)
     List.doubleToString(List(1.0)) should be(List("1.0"))
     List.doubleToString(List(1.0, 2.0, 3.0)) should be(
+      List("1.0", "2.0", "3.0")
+    )
+
+    List.doubleToStringFR(Nil) should be(Nil)
+    List.doubleToStringFR(List(1.0)) should be(List("1.0"))
+    List.doubleToStringFR(List(1.0, 2.0, 3.0)) should be(
       List("1.0", "2.0", "3.0")
     )
   }
@@ -141,6 +147,12 @@ class ListTest extends AnyFunSuite {
     List.map(List(1.0, 2.0, 3.0))(_.toString) should be(
       List("1.0", "2.0", "3.0")
     )
+
+    List.mapFR(Nil: List[Double])(_.toString) should be(Nil)
+    List.mapFR(List(1.0))(_.toString) should be(List("1.0"))
+    List.mapFR(List(1.0, 2.0, 3.0))(_.toString) should be(
+      List("1.0", "2.0", "3.0")
+    )
   }
 
   test("List.filter") {
@@ -149,6 +161,28 @@ class ListTest extends AnyFunSuite {
     List.filter(Nil: List[Int])(even) should be(Nil)
     List.filter(List(1))(even) should be(Nil)
     List.filter(List(1, 2, 3, 4, 5, 6))(even) should be(List(2, 4, 6))
+
+    List.filterFR(Nil: List[Int])(even) should be(Nil)
+    List.filterFR(List(1))(even) should be(Nil)
+    List.filterFR(List(1, 2, 3, 4, 5, 6))(even) should be(List(2, 4, 6))
+
+    List.filterFM(Nil: List[Int])(even) should be(Nil)
+    List.filterFM(List(1))(even) should be(Nil)
+    List.filterFM(List(1, 2, 3, 4, 5, 6))(even) should be(List(2, 4, 6))
+  }
+
+  test("List.flatMap") {
+    val duplicate = (x: Int) => List(x, x)
+
+    List.flatMap(Nil: List[Int])(duplicate) should be(Nil)
+    List.flatMap(List(1))(duplicate) should be(List(1, 1))
+    List.flatMap(List(1, 2, 3))(duplicate) should be(List(1, 1, 2, 2, 3, 3))
+  }
+
+  test("List.zipInts") {
+    List.zipInts(Nil, Nil) should be(Nil)
+    List.zipInts(List(1), List(1)) should be(List(2))
+    List.zipInts(List(1, 2, 3), List(4, 5, 6)) should be(List(5, 7, 9))
   }
 
 }
