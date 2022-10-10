@@ -91,4 +91,17 @@ class ListTest extends AnyFunSuite {
     List.foldLeft(zeros, 0)(_ + _) should be(0)
   }
 
+  test("List.reverse") {
+    List.reverse(Nil) should be(Nil)
+    List.reverse(List(1)) should be(List(1))
+    List.reverse(List(1, 2, 3)) should be(List(3, 2, 1))
+  }
+
+  test("List.appendFL") {
+    List.append(Nil, Nil) should be(Nil)
+    List.append(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
+    List.append(List(1, 2, 3), Nil) should be(List(1, 2, 3))
+    List.append(List(1), List(2, 3)) should be(List(1, 2, 3))
+  }
+
 }

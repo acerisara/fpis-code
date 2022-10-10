@@ -76,4 +76,20 @@ object List {
     case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
   }
 
+  def sumFL(ints: List[Int]): Int = foldLeft(ints, 0)(_ + _)
+
+  def productFL(ds: List[Double]): Double = foldLeft(ds, 0.0)(_ * _)
+
+  def lengthFL[A](as: List[A]): Int = foldLeft(as, 0)((b, _) => b + 1)
+
+  def reverse[A](as: List[A]): List[A] =
+    foldLeft(as, Nil: List[A])((b, a) => Cons(a, b))
+
+  // TODO: Write foldLeft in terms of foldRight and vice versa
+
+  def appendFL[A](a1: List[A], a2: List[A]): List[A] =
+    foldLeft(a1, a2)((b, a) => Cons(a, b))
+
+  def flatten[A](ls: List[List[A]]): List[A] = ???
+
 }
