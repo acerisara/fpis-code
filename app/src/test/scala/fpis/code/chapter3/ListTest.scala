@@ -104,6 +104,13 @@ class ListTest extends AnyFunSuite {
     List.appendFL(List(1), List(2, 3)) should be(List(1, 2, 3))
   }
 
+  test("List.appendFR") {
+    List.appendFR(Nil, Nil) should be(Nil)
+    List.appendFR(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
+    List.appendFR(List(1, 2, 3), Nil) should be(List(1, 2, 3))
+    List.appendFR(List(1), List(2, 3)) should be(List(1, 2, 3))
+  }
+
   test("List.flatten") {
     List.flatten(List(Nil)) should be(Nil)
     List.flatten(List(List(1), List(2), List(3))) should be(List(1, 2, 3))

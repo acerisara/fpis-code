@@ -90,6 +90,9 @@ object List {
   def appendFL[A](a1: List[A], a2: List[A]): List[A] =
     foldLeft(reverse(a1), a2)((b, a) => Cons(a, b))
 
+  def appendFR[A](a1: List[A], a2: List[A]): List[A] =
+    foldRight(a1, a2)(Cons(_, _))
+
   def flatten[A](ls: List[List[A]]): List[A] =
     foldRight(ls, Nil: List[A])(append)
 
