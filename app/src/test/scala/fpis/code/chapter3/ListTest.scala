@@ -33,6 +33,8 @@ class ListTest extends AnyFunSuite {
     List.drop(1, Nil) should be(Nil)
     List.drop(1, List(1)) should be(Nil)
     List.drop(2, List(1, 2, 3)) should be(List(3))
+    List.drop(0, List(1)) should be(List(1))
+    List.drop(-1, List(1)) should be(List(1))
   }
 
   test("List.dropWhile") {
