@@ -88,7 +88,7 @@ object List {
   // TODO: Write foldLeft in terms of foldRight and vice versa
 
   def appendFL[A](a1: List[A], a2: List[A]): List[A] =
-    foldLeft(a1, a2)((b, a) => Cons(a, b))
+    foldLeft(reverse(a1), a2)((b, a) => Cons(a, b))
 
   def flatten[A](ls: List[List[A]]): List[A] = ???
 

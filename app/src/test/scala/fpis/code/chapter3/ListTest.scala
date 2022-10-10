@@ -98,10 +98,10 @@ class ListTest extends AnyFunSuite {
   }
 
   test("List.appendFL") {
-    List.append(Nil, Nil) should be(Nil)
-    List.append(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
-    List.append(List(1, 2, 3), Nil) should be(List(1, 2, 3))
-    List.append(List(1), List(2, 3)) should be(List(1, 2, 3))
+    List.appendFL(Nil, Nil) should be(Nil)
+    List.appendFL(Nil, List(1, 2, 3)) should be(List(1, 2, 3))
+    List.appendFL(List(1, 2, 3), Nil) should be(List(1, 2, 3))
+    List.appendFL(List(1), List(2, 3)) should be(List(1, 2, 3))
   }
 
 }
