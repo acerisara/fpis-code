@@ -141,12 +141,40 @@ object List {
     flatMap(as)(a => if (f(a)) List(a) else Nil)
 
   def zipInts(i1: List[Int], i2: List[Int]): List[Int] = {
-    // TODO: WIP, handle corner cases, etc...
+    // The exercise doesn't specify how to handle cases where
+    // lists are of different length. This implementation always produces
+    // a list with same size as i1, using 0 as default value
+    // when i2 is shorter and therefore cannot provide a valid element
     reverse(foldLeft(i1, (Nil: List[Int], i2))((b, a) => {
       val acc = b._1
       val i2_ = b._2
       (Cons(a + headOr(i2_, 0), acc): List[Int], tail(i2_))
     })._1)
   }
+
+  def zipInts2(i1: List[Int], i2: List[Int]): List[Int] = {
+    // The exercise doesn't specify how to handle cases where
+    // lists are of different length. This implementation produces
+    // a value only if both elements are available
+    reverse(foldLeft(i1, (Nil: List[Int], i2))((b, a) => {
+      val acc = b._1
+      val i2_ = b._2
+
+      val cons = i2_ match {
+        case Nil        => Nil
+        case Cons(x, _) => Cons(a + x, acc)
+      }
+
+      (cons, tail(i2_))
+    })._1)
+  }
+
+  def zipWith[A, B, C](l1: List[A], l2: List[B])(f: (A, B) => C): List[C] =
+    (l1, l2) match {
+      case (Nil, _) => Nil
+      case (_, Nil) => Nil
+      case (Cons(x1, xs1), Cons(x2, xs2)) =>
+        Cons(f(x1, x2), zipWith(xs1, xs2)(f))
+    }
 
 }

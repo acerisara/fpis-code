@@ -183,6 +183,26 @@ class ListTest extends AnyFunSuite {
     List.zipInts(Nil, Nil) should be(Nil)
     List.zipInts(List(1), List(1)) should be(List(2))
     List.zipInts(List(1, 2, 3), List(4, 5, 6)) should be(List(5, 7, 9))
+    List.zipInts(List(1, 2), Nil) should be(List(1, 2))
+    List.zipInts(Nil, List(1, 2)) should be(Nil)
+    List.zipInts(List(1), List(1, 2, 3)) should be(List(2))
+  }
+
+  test("List.zipInts2") {
+    List.zipInts2(Nil, Nil) should be(Nil)
+    List.zipInts2(List(1), List(1)) should be(List(2))
+    List.zipInts2(List(1, 2, 3), List(4, 5, 6)) should be(List(5, 7, 9))
+    List.zipInts2(List(1, 2), Nil) should be(Nil)
+    List.zipInts2(Nil, List(1, 2)) should be(Nil)
+    List.zipInts2(List(1), List(1, 2, 3)) should be(List(2))
+  }
+
+  test("List.zipWith") {
+    List.zipWith(List(1), Nil: List[Int])(_ + _) should be(Nil)
+    List.zipWith(Nil: List[Int], List(1))(_ + _) should be(Nil)
+    List.zipWith(List(1, 2, 3), List(4, 5, 6))(_ + _) should be(List(5, 7, 9))
+    List.zipWith(List(1, 2, 3), List(4))(_ + _) should be(List(5))
+    List.zipWith(List(1), List(4, 5, 6))(_ + _) should be(List(5))
   }
 
 }
