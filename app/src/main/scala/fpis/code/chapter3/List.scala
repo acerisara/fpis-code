@@ -177,4 +177,20 @@ object List {
         Cons(f(x1, x2), zipWith(xs1, xs2)(f))
     }
 
+  @tailrec
+  def startsWith[A](as: List[A], prefix: List[A]): Boolean =
+    (as, prefix) match {
+      case (_, Nil)                                   => true
+      case (Cons(x1, xs1), Cons(x2, xs2)) if x1 == x2 => startsWith(xs1, xs2)
+      case _                                          => false
+    }
+
+  @tailrec
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+    (sup, sub) match {
+      case (Cons(_, _), Cons(_, _)) if startsWith(sup, sub) => true
+      case (Cons(_, xs1), _)                                => hasSubsequence(xs1, sub)
+      case _                                                => false
+    }
+  }
 }

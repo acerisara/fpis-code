@@ -205,4 +205,15 @@ class ListTest extends AnyFunSuite {
     List.zipWith(List(1), List(4, 5, 6))(_ + _) should be(List(5))
   }
 
+  test("List.hasSubsequence") {
+    List.hasSubsequence(List(1, 2, 3, 4), List(1, 2)) should be(true)
+    List.hasSubsequence(List(1, 2, 3, 4), List(2, 3)) should be(true)
+    List.hasSubsequence(List(1, 2, 3, 4), List(4)) should be(true)
+    List.hasSubsequence(List(1, 2, 3, 4), List(1, 3)) should be(false)
+    List.hasSubsequence(List(1, 2, 3, 4), List(2, 4)) should be(false)
+    List.hasSubsequence(Nil, Nil) should be(false)
+    List.hasSubsequence(List(1, 2, 3), Nil) should be(false)
+    List.hasSubsequence(Nil, List(1, 2)) should be(false)
+  }
+
 }
