@@ -33,7 +33,7 @@ object List {
     case Cons(_, xs) => xs
   }
 
-  def headOr[A](as: List[A], default: A): A = as match {
+  def headOr[A](as: List[A], default: => A): A = as match {
     case Nil        => default
     case Cons(x, _) => x
   }
