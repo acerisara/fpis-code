@@ -55,4 +55,9 @@ object Option {
       } yield as :+ a
     })
 
+  def sequenceM[A](oas: List[Option[A]]): Option[List[A]] =
+    oas.foldLeft(Some(List.empty[A]): Option[List[A]])((oas, oa) =>
+      map2(oas, oa)(_ :+ _)
+    )
+
 }

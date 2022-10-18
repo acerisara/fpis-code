@@ -47,6 +47,11 @@ class OptionTest extends AnyFunSuite {
     Option.sequence(List(None)) should be(None)
     Option.sequence(List(Some(1), Some(2))) should be(Some(List(1, 2)))
     Option.sequence(List(Some(1), Some(2), None)) should be(None)
+
+    Option.sequenceM(List.empty) should be(Some(List.empty))
+    Option.sequenceM(List(None)) should be(None)
+    Option.sequenceM(List(Some(1), Some(2))) should be(Some(List(1, 2)))
+    Option.sequenceM(List(Some(1), Some(2), None)) should be(None)
   }
 
 }
