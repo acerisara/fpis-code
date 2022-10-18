@@ -36,10 +36,8 @@ object Option {
     if (xs.isEmpty) None
     else Some(xs.sum / xs.length)
 
-  def variance(xs: Seq[Double]): Option[Double] = {
-    val m = mean(xs)
-    m.flatMap(m => mean(xs.map(x => math.pow(x - m, 2))))
-  }
+  def variance(xs: Seq[Double]): Option[Double] =
+    mean(xs).flatMap(m => mean(xs.map(x => math.pow(x - m, 2))))
 
   def lift[A, B](f: A => B): Option[A] => Option[B] = _ map f
 
