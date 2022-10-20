@@ -60,4 +60,34 @@ object Option {
       map2(oas, oa)(_ :+ _)
     )
 
+  def sequenceP[A](oas: List[Option[A]]): Option[List[A]] =
+    oas match {
+      case Nil => Some(List.empty)
+      case oa :: oas =>
+        for {
+          as <- sequence(oas)
+          a <- oa
+        } yield a :: as
+    }
+
+  def Try[A](a: => A): Option[A] =
+    try Some(a)
+    catch {
+      case _: Exception => None
+    }
+
+  // We want to map over a list with a function that might fail, returning None
+  // if applying it to any element of the list returns None. The problem with this implementation is that
+  // we have to iterate the list twice
+  def parseInts(a: List[String]): Option[List[Int]] =
+    sequence(a map (i => Try(i.toInt)))
+
+  def traverse[A, B](as: List[A])(f: A => Option[B]): Option[List[B]] =
+    as.foldLeft(Some(List.empty[B]): Option[List[B]])((oas, a) =>
+      map2(oas, f(a))(_ :+ _)
+    )
+
+  def sequenceT[A](oas: List[Option[A]]): Option[List[A]] =
+    traverse(oas)(oa => oa)
+
 }

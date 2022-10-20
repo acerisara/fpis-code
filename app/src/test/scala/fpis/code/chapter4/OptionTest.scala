@@ -52,6 +52,30 @@ class OptionTest extends AnyFunSuite {
     Option.sequenceM(List(None)) should be(None)
     Option.sequenceM(List(Some(1), Some(2))) should be(Some(List(1, 2)))
     Option.sequenceM(List(Some(1), Some(2), None)) should be(None)
+
+    Option.sequenceP(List.empty) should be(Some(List.empty))
+    Option.sequenceP(List(None)) should be(None)
+    Option.sequenceP(List(Some(1), Some(2))) should be(Some(List(1, 2)))
+    Option.sequenceP(List(Some(1), Some(2), None)) should be(None)
+
+    Option.sequenceT(List.empty) should be(Some(List.empty))
+    Option.sequenceT(List(None)) should be(None)
+    Option.sequenceT(List(Some(1), Some(2))) should be(Some(List(1, 2)))
+    Option.sequenceT(List(Some(1), Some(2), None)) should be(None)
+  }
+
+  test("Option.traverse") {
+    Option.traverse(List.empty[Int])(a => Some(a.toString)) should be(
+      Some(List.empty)
+    )
+
+    Option.traverse(List(1, 2))(a => Some(a.toString)) should be(
+      Some(List("1", "2"))
+    )
+
+    Option.traverse(List(1, 2))(a =>
+      if (a == 1) Some(a.toString) else None
+    ) should be(None)
   }
 
 }
