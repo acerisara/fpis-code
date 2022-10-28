@@ -6,7 +6,7 @@ sealed trait Stream[+A] {
 
   def headOption: Option[A] = this match {
     case Empty      => None
-    case Cons(h, _) => Some(h()) // Explicit forcing of the h thunk using h()
+    case Cons(h, _) => Some(h())
   }
 
   // This implementation is not stack-safe
