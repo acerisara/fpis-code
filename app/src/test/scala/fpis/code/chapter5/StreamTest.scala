@@ -81,4 +81,17 @@ class StreamTest extends AnyFunSuite {
     Stream(1, 2).flatMap(i => Stream(i, i)).toList should be(List(1, 1, 2, 2))
   }
 
+  test("Stream.from") {
+    Stream.from(0).take(0).toList should be(List.empty)
+    Stream.from(0).take(3).toList should be(List(0, 1, 2))
+  }
+
+  test("Stream.fibs") {
+    Stream.fibs().take(0).toList should be(List.empty)
+    Stream.fibs().take(1).toList should be(List(0))
+    Stream.fibs().take(2).toList should be(List(0, 1))
+    Stream.fibs().take(3).toList should be(List(0, 1, 1))
+    Stream.fibs().take(7).toList should be(List(0, 1, 1, 2, 3, 5, 8))
+  }
+
 }
