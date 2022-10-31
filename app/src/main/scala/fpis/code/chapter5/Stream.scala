@@ -1,6 +1,6 @@
 package fpis.code.chapter5
 
-import fpis.code.chapter5.Stream.{cons, empty}
+import fpis.code.chapter5.Stream.{cons, empty, unfold}
 
 sealed trait Stream[+A] {
 
@@ -49,6 +49,24 @@ sealed trait Stream[+A] {
   def flatMap[B](p: A => Stream[B]): Stream[B] =
     foldRight(empty: Stream[B])((h, t) => p(h).append(t))
 
+  def tail(): Stream[A] = this match {
+    case Empty      => Empty
+    case Cons(_, t) => t()
+  }
+
+  def mapU[B](p: A => B): Stream[B] =
+    unfold(this)(s => s.headOption.map(a => p(a)).map((_, s.tail())))
+
+  def takeU(n: Int): Stream[A] = unfold((this, n)) { case (s, n) =>
+    if (n > 0) s.headOption.map(a => (a, (s.tail(), n - 1)))
+    else None
+  }
+
+  def takeWhileU(p: A => Boolean): Stream[A] =
+    unfold(this)(s =>
+      s.headOption.flatMap(a => if (p(a)) Some(a, s.tail()) else None)
+    )
+
 }
 
 case object Empty extends Stream[Nothing]
@@ -85,6 +103,16 @@ object Stream {
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
     case None         => Stream.empty
     case Some((a, s)) => cons(a, unfold(s)(f))
+  }
+
+  val onesU: Stream[Int] = unfold(1)(s => Some(s, s))
+
+  def constantU[A](a: A): Stream[A] = unfold(a)(s => Some(s, s))
+
+  def fromU(n: Int): Stream[Int] = unfold(n)(s => Some(s, s + 1))
+
+  def fibsU(): Stream[Int] = unfold((0, 1)) { case (current, next) =>
+    Some(current, (next, current + next))
   }
 
 }

@@ -33,6 +33,14 @@ class StreamTest extends AnyFunSuite {
     Stream(1, 2, 3).take(2).toList should be(List(1, 2))
     Stream(1, 2, 3).take(3).toList should be(List(1, 2, 3))
     Stream(1, 2, 3).take(5).toList should be(List(1, 2, 3))
+
+    Stream.empty.takeU(0).toList should be(List.empty)
+    Stream.empty.takeU(1).toList should be(List.empty)
+    Stream(1).takeU(0).toList should be(List.empty)
+    Stream(1).takeU(1).toList should be(List(1))
+    Stream(1, 2, 3).takeU(2).toList should be(List(1, 2))
+    Stream(1, 2, 3).takeU(3).toList should be(List(1, 2, 3))
+    Stream(1, 2, 3).takeU(5).toList should be(List(1, 2, 3))
   }
 
   test("Stream.takeWhile") {
@@ -45,6 +53,11 @@ class StreamTest extends AnyFunSuite {
     Stream(1).takeWhileF(_ > 0).toList should be(List(1))
     Stream(1).takeWhileF(_ > 1).toList should be(List.empty)
     Stream(1, 2, 3, 4, 5).takeWhileF(_ < 4).toList should be(List(1, 2, 3))
+
+    Stream.empty[Boolean].takeWhileU(_ == true).toList should be(List.empty)
+    Stream(1).takeWhileU(_ > 0).toList should be(List(1))
+    Stream(1).takeWhileU(_ > 1).toList should be(List.empty)
+    Stream(1, 2, 3, 4, 5).takeWhileU(_ < 4).toList should be(List(1, 2, 3))
   }
 
   test("Stream.forAll") {
@@ -58,6 +71,10 @@ class StreamTest extends AnyFunSuite {
     Stream.empty[Int].map(_.toString).toList should be(List.empty)
     Stream(1).map(_.toString).toList should be(List("1"))
     Stream(1, 2, 3).map(_.toString).toList should be(List("1", "2", "3"))
+
+    Stream.empty[Int].mapU(_.toString).toList should be(List.empty)
+    Stream(1).mapU(_.toString).toList should be(List("1"))
+    Stream(1, 2, 3).mapU(_.toString).toList should be(List("1", "2", "3"))
   }
 
   test("Stream.filter") {
@@ -84,6 +101,8 @@ class StreamTest extends AnyFunSuite {
   test("Stream.from") {
     Stream.from(0).take(0).toList should be(List.empty)
     Stream.from(0).take(3).toList should be(List(0, 1, 2))
+    Stream.fromU(0).take(0).toList should be(List.empty)
+    Stream.fromU(0).take(3).toList should be(List(0, 1, 2))
   }
 
   test("Stream.fibs") {
@@ -92,6 +111,24 @@ class StreamTest extends AnyFunSuite {
     Stream.fibs().take(2).toList should be(List(0, 1))
     Stream.fibs().take(3).toList should be(List(0, 1, 1))
     Stream.fibs().take(7).toList should be(List(0, 1, 1, 2, 3, 5, 8))
+
+    Stream.fibsU().take(0).toList should be(List.empty)
+    Stream.fibsU().take(1).toList should be(List(0))
+    Stream.fibsU().take(2).toList should be(List(0, 1))
+    Stream.fibsU().take(3).toList should be(List(0, 1, 1))
+    Stream.fibsU().take(7).toList should be(List(0, 1, 1, 2, 3, 5, 8))
+  }
+
+  test("Stream.ones") {
+    Stream.ones.take(3).toList should be(List(1, 1, 1))
+    Stream.onesU.take(3).toList should be(List(1, 1, 1))
+  }
+
+  test("Stream.constant") {
+    Stream.constant("S").take(3).toList should be(List("S", "S", "S"))
+    Stream.constant(()).take(3).toList should be(List((), (), ()))
+    Stream.constantU("S").take(3).toList should be(List("S", "S", "S"))
+    Stream.constantU(()).take(3).toList should be(List((), (), ()))
   }
 
 }
