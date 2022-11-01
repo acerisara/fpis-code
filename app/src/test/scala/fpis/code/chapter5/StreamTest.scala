@@ -131,4 +131,42 @@ class StreamTest extends AnyFunSuite {
     Stream.constantU(()).take(3).toList should be(List((), (), ()))
   }
 
+  test("Stream.zipWith") {
+    Stream.empty[Int].zipWith(Stream.empty[Int])(_ + _).toList should be(
+      List.empty
+    )
+
+    Stream(1, 2, 3).zipWith(Stream.empty[Int])(_ + _).toList should be(
+      List.empty
+    )
+
+    Stream.empty[Int].zipWith(Stream(1, 2, 3))(_ + _).toList should be(
+      List.empty
+    )
+
+    Stream(1, 1, 1).zipWith(Stream(2, 2, 2))(_ + _).toList should be(
+      List(3, 3, 3)
+    )
+
+    Stream(1, 1).zipWith(Stream(2, 2, 2))(_ + _).toList should be(
+      List(3, 3)
+    )
+  }
+
+  test("Stream.zipAll") {
+    Stream.empty[Int].zipAll(Stream.empty[Int]).toList should be(List.empty)
+
+    Stream(1, 2, 3).zipAll(Stream.empty[Int]).toList should be(
+      List((Some(1), None), (Some(2), None), (Some(3), None))
+    )
+
+    Stream.empty[Int].zipAll(Stream(1, 2, 3)).toList should be(
+      List((None, Some(1)), (None, Some(2)), (None, Some(3)))
+    )
+
+    Stream(1, 2, 3).zipAll(Stream(1, 2)).toList should be(
+      List((Some(1), Some(1)), (Some(2), Some(2)), (Some(3), None))
+    )
+  }
+
 }

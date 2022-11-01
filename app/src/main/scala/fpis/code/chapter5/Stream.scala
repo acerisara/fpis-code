@@ -67,6 +67,24 @@ sealed trait Stream[+A] {
       s.headOption.flatMap(a => if (p(a)) Some(a, s.tail()) else None)
     )
 
+  // TODO: Try implementing zip* with unfold
+
+  def zipWith[B, C](s2: Stream[B])(f: (A, B) => C): Stream[C] =
+    (this, s2) match {
+      case (Empty, _) => Empty
+      case (_, Empty) => Empty
+      case (Cons(h1, t1), Cons(h2, t2)) =>
+        cons(f(h1(), h2()), t1().zipWith(t2())(f))
+    }
+
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] =
+    (this, s2) match {
+      case (Empty, Empty)      => Empty
+      case (Cons(h, t), Empty) => cons((Some(h()), None), t().zipAll(s2))
+      case (Empty, Cons(h, t)) => cons((None, Some(h())), zipAll(t()))
+      case (Cons(h1, t1), Cons(h2, t2)) =>
+        cons((Some(h1()), Some(h2())), t1().zipAll(t2()))
+    }
 }
 
 case object Empty extends Stream[Nothing]
