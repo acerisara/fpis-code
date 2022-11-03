@@ -154,18 +154,41 @@ class StreamTest extends AnyFunSuite {
   }
 
   test("Stream.zipAll") {
-    Stream.empty[Int].zipAll(Stream.empty[Int]).toList should be(List.empty)
+    Stream.empty.zipAll(Stream.empty).toList should be(List.empty)
 
-    Stream(1, 2, 3).zipAll(Stream.empty[Int]).toList should be(
+    Stream(1, 2, 3).zipAll(Stream.empty).toList should be(
       List((Some(1), None), (Some(2), None), (Some(3), None))
     )
 
-    Stream.empty[Int].zipAll(Stream(1, 2, 3)).toList should be(
+    Stream.empty.zipAll(Stream(1, 2, 3)).toList should be(
       List((None, Some(1)), (None, Some(2)), (None, Some(3)))
     )
 
     Stream(1, 2, 3).zipAll(Stream(1, 2)).toList should be(
       List((Some(1), Some(1)), (Some(2), Some(2)), (Some(3), None))
+    )
+  }
+
+  test("Stream.startsWith") {
+    Stream.empty.startsWith(Stream.empty) should be(true)
+    Stream.empty.startsWith(Stream(1)) should be(false)
+    Stream(1).startsWith(Stream(1)) should be(true)
+    Stream(1, 2, 3).startsWith(Stream(1, 2)) should be(true)
+    Stream(1).startsWith(Stream(1, 2)) should be(false)
+    Stream(1).startsWith(Stream.empty) should be(true)
+  }
+
+  test("Stream.tails") {
+    Stream.empty[Int].tails.map(_.toList).toList should be(List(List.empty))
+    Stream(1).tails.map(_.toList).toList should be(List(List(1), List.empty))
+
+    Stream(1, 2, 3).tails.map(_.toList).toList should be(
+      List(
+        List(1, 2, 3),
+        List(2, 3),
+        List(3),
+        List.empty
+      )
     )
   }
 

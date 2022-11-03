@@ -30,6 +30,8 @@ sealed trait Stream[+A] {
     case _          => z
   }
 
+  def exists(p: A => Boolean): Boolean = foldRight(false)((a, b) => p(a) || b)
+
   def forAll(p: A => Boolean): Boolean = foldRight(true)((h, t) => p(h) && t)
 
   def takeWhileF(p: A => Boolean): Stream[A] =
@@ -85,6 +87,21 @@ sealed trait Stream[+A] {
       case (Cons(h1, t1), Cons(h2, t2)) =>
         cons((Some(h1()), Some(h2())), t1().zipAll(t2()))
     }
+
+  def startsWith[B >: A](s: Stream[B]): Boolean = (this, s) match {
+    case (Cons(h1, t1), Cons(h2, t2)) if h1() == h2() => t1().startsWith(t2())
+    case (_, Empty)                                   => true
+    case _                                            => false
+  }
+
+  def tails: Stream[Stream[A]] = unfold(this) {
+    case Cons(h, t) => Some(cons(h(), t()), t())
+    case _          => None
+  }.append(Stream(empty))
+
+  def hasSubsequence[B >: A](s: Stream[B]): Boolean =
+    tails.exists(_.startsWith(s))
+
 }
 
 case object Empty extends Stream[Nothing]
