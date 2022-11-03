@@ -192,4 +192,10 @@ class StreamTest extends AnyFunSuite {
     )
   }
 
+  test("Stream.scanRight") {
+    Stream.empty[Int].scanRight(0)(_ + _).toList should be(List(0))
+    Stream(1).scanRight(0)(_ + _).toList should be(List(1, 0))
+    Stream(1, 2, 3).scanRight(0)(_ + _).toList should be(List(6, 5, 3, 0))
+  }
+
 }
