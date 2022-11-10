@@ -57,6 +57,7 @@ object Rand {
   def sequence[A](ras: List[Rand[A]]): Rand[List[A]] =
     rng => {
       ras.foldRight((List.empty[A], rng))((ra, b) => {
+        // This is essentially map2
         val (as, rng) = b
         val (a, rng2) = ra(rng)
         (a :: as, rng2)
