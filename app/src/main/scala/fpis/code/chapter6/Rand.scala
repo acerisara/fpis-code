@@ -54,4 +54,20 @@ object Rand {
       unit(f(a))
     }
 
+  def sequence[A](ras: List[Rand[A]]): Rand[List[A]] =
+    rng => {
+      ras.foldRight((List.empty[A], rng))((ra, b) => {
+        val (as, rng) = b
+        val (a, rng2) = ra(rng)
+        (a :: as, rng2)
+      })
+    }
+
+  def sequenceU[A](ras: List[Rand[A]]): Rand[List[A]] =
+    ras.foldRight(unit(List.empty[A]))((ra, ras) => map2(ra, ras)(_ :: _))
+
+  def ints(count: Int): Rand[List[Int]] = sequence(List.fill(count)(int))
+
+  def intsU(count: Int): Rand[List[Int]] = sequenceU(List.fill(count)(int))
+
 }
