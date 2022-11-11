@@ -10,15 +10,15 @@ object Rand {
 
   def unit[A](a: A): Rand[A] = rng => (a, rng)
 
-  def map[A, B](s: Rand[A])(f: A => B): Rand[B] =
+  def map[A, B](ra: Rand[A])(f: A => B): Rand[B] =
     rng => {
-      val (a, rng2) = s(rng)
+      val (a, rng2) = ra(rng)
       (f(a), rng2)
     }
 
-  def flatMap[A, B](s: Rand[A])(f: A => Rand[B]): Rand[B] =
+  def flatMap[A, B](ra: Rand[A])(f: A => Rand[B]): Rand[B] =
     rng => {
-      val (a, rng2) = s(rng)
+      val (a, rng2) = ra(rng)
       f(a)(rng2)
     }
 
