@@ -17,11 +17,10 @@ class RandTest extends AnyFunSuite {
     val is2 = Rand.intsU(5)(rng)._1
 
     is1 should be(
-      List(-284667191, 2086077588, 1220957452, 1221384887, 1820451251)
+      List(1820451251, 1221384887, 1220957452, 2086077588, -284667191)
     )
 
-    // TODO: Check ordering here
-//    is1 should be(is2)
+    is1 should be(is2)
   }
 
 }

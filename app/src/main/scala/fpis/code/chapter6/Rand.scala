@@ -60,7 +60,7 @@ object Rand {
         // This is essentially map2
         val (as, rng) = b
         val (a, rng2) = ra(rng)
-        (a :: as, rng2)
+        (as :+ a, rng2)
       })
     }
 

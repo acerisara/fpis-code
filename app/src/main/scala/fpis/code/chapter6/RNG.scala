@@ -50,7 +50,7 @@ object SimpleRNG {
     def go(count: Int, rng: RNG, ints: List[Int]): (List[Int], RNG) =
       if (count > 0) {
         val (n, rng2) = rng.nextInt
-        go(count - 1, rng2, n :: ints)
+        go(count - 1, rng2, ints :+ n)
       } else (ints, rng)
 
     go(count, rng, List.empty)
