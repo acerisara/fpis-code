@@ -13,14 +13,11 @@ class RandTest extends AnyFunSuite {
   val rng: SimpleRNG = SimpleRNG(seed)
 
   test("Rand.ints") {
-    val is1 = Rand.ints(5)(rng)._1
-    val is2 = Rand.intsU(5)(rng)._1
+    val is = Rand.ints(5).run(rng)._1
 
-    is1 should be(
+    is should be(
       List(1820451251, 1221384887, 1220957452, 2086077588, -284667191)
     )
-
-    is1 should be(is2)
   }
 
 }

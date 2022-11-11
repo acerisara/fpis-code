@@ -4,43 +4,24 @@ import fpis.code.chapter6.SimpleRNG.nonNegativeInt
 
 object Rand {
 
-  type Rand[+A] = RNG => (A, RNG)
+  type Rand[+A] = State[RNG, A]
 
-  val int: Rand[Int] = _.nextInt
+  val int: Rand[Int] = State(_.nextInt)
 
-  def unit[A](a: A): Rand[A] = rng => (a, rng)
+  def unit[A](a: A): Rand[A] = State.unit(a)
 
-  def map[A, B](ra: Rand[A])(f: A => B): Rand[B] =
-    rng => {
-      val (a, rng2) = ra(rng)
-      (f(a), rng2)
-    }
+  def map[A, B](ra: Rand[A])(f: A => B): Rand[B] = ra.map(f)
 
-  def flatMap[A, B](ra: Rand[A])(f: A => Rand[B]): Rand[B] =
-    rng => {
-      val (a, rng2) = ra(rng)
-      f(a)(rng2)
-    }
+  def flatMap[A, B](ra: Rand[A])(f: A => Rand[B]): Rand[B] = ra.flatMap(f)
 
   def nonNegativeEven: Rand[Int] =
-    map(nonNegativeInt)(i => i - i % 2)
+    map(State(nonNegativeInt))(i => i - i % 2)
 
   def double: Rand[Double] =
-    map(nonNegativeInt)(i => i / (Int.MaxValue.toDouble + 1))
+    map(State(nonNegativeInt))(i => i / (Int.MaxValue.toDouble + 1))
 
   def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
-    rng => {
-      val (a, rng2) = ra(rng)
-      val (b, rng3) = rb(rng2)
-      (f(a, b), rng3)
-    }
-
-  def map2F[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
-    flatMap(ra) { a =>
-      map(rb) { b =>
-        f(a, b)
-      }
-    }
+    ra.map2(rb)(f)
 
   def both[A, B](ra: Rand[A], rb: Rand[B]): Rand[(A, B)] =
     map2(ra, rb)((_, _))
@@ -49,26 +30,6 @@ object Rand {
 
   val randDoubleInt: Rand[(Double, Int)] = both(double, int)
 
-  def mapF[A, B](ra: Rand[A])(f: A => B): Rand[B] =
-    flatMap(ra) { a =>
-      unit(f(a))
-    }
-
-  def sequence[A](ras: List[Rand[A]]): Rand[List[A]] =
-    rng => {
-      ras.foldRight((List.empty[A], rng))((ra, b) => {
-        // This is essentially map2
-        val (as, rng) = b
-        val (a, rng2) = ra(rng)
-        (as :+ a, rng2)
-      })
-    }
-
-  def sequenceU[A](ras: List[Rand[A]]): Rand[List[A]] =
-    ras.foldRight(unit(List.empty[A]))((ra, ras) => map2(ra, ras)(_ :: _))
-
-  def ints(count: Int): Rand[List[Int]] = sequence(List.fill(count)(int))
-
-  def intsU(count: Int): Rand[List[Int]] = sequenceU(List.fill(count)(int))
+  def ints(count: Int): Rand[List[Int]] = State.sequence(List.fill(count)(int))
 
 }
