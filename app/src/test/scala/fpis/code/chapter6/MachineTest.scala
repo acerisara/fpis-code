@@ -25,9 +25,9 @@ class MachineTest extends AnyFunSuite {
     )
 
     val result =
-      s.run(Machine(locked = true, candies = 5, coins = 10))._1
+      s.run(Machine(locked = true, candies = 5, coins = 10))
 
-    result should be((14, 1))
+    result should be((14, 1), Machine(locked = true, candies = 1, coins = 14))
   }
 
   test("turn on a locked machine") {
