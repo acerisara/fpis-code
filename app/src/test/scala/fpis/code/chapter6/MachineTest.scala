@@ -30,4 +30,56 @@ class MachineTest extends AnyFunSuite {
     result should be((14, 1))
   }
 
+  test("turn on a locked machine") {
+    val s = simulateMachine(List(Turn))
+
+    val result =
+      s.run(Machine(locked = true, candies = 5, coins = 10))
+
+    result should be((10, 5), Machine(locked = true, candies = 5, coins = 10))
+  }
+
+  test("insert a coin into an unlocked machine") {
+    val s = simulateMachine(List(Coin))
+
+    val result =
+      s.run(Machine(locked = false, candies = 5, coins = 10))
+
+    result should be((10, 5), Machine(locked = false, candies = 5, coins = 10))
+  }
+
+  test("a machine that’s out of candy ignores all inputs") {
+    val s = simulateMachine(
+      List(
+        Coin,
+        Turn,
+        Coin,
+        Turn
+      )
+    )
+
+    val result =
+      s.run(Machine(locked = true, candies = 0, coins = 10))
+
+    result should be((10, 0), Machine(locked = true, candies = 0, coins = 10))
+  }
+
+  test("insert a coin into a locked machine") {
+    val s = simulateMachine(List(Coin))
+
+    val result =
+      s.run(Machine(locked = true, candies = 5, coins = 10))
+
+    result should be((11, 5), Machine(locked = false, candies = 5, coins = 11))
+  }
+
+  test("turn the knob on an unlocked machine") {
+    val s = simulateMachine(List(Turn))
+
+    val result =
+      s.run(Machine(locked = false, candies = 5, coins = 10))
+
+    result should be((10, 4), Machine(locked = true, candies = 4, coins = 10))
+  }
+
 }
