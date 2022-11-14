@@ -24,6 +24,8 @@ case class Machine(locked: Boolean, candies: Int, coins: Int) {
 
 object Machine {
 
+  // TODO: Try using modify
+
   def next(
       machine: State[Machine, (Int, Int)],
       input: Input
