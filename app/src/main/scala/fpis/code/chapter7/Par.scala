@@ -50,8 +50,8 @@ object Par {
     pas.foldRight(unit(List.empty[A]))((pa, ps) => map2(pa, ps)(_ :: _))
 
   def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] = {
-    val pfs = sequence(as.map(asyncF(f)))
-    map(pfs)(_.zip(as).filter(_._1).map(_._2))
+    val pbs = sequence(as.map(asyncF(f)))
+    map(pbs)(_.zip(as).filter(_._1).map(_._2))
   }
 
 }
