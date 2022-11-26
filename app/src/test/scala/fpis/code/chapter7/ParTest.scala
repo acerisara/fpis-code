@@ -38,4 +38,19 @@ class ParTest extends AnyFunSuite {
     val p = parFilter(List(1, 2, 3, 4, 5))(_ > 2)
     p(es).get() should be(List(3, 4, 5))
   }
+
+  ignore("Par fork implementation deadlock") {
+    val es = Executors.newFixedThreadPool(1)
+    fork(lazyUnit(42 + 1))(es).get() should be(43)
+  }
+
+  ignore("Any fixed-size thread pool can be made to deadlock") {
+    val n = 20 // arbitrary length
+    val es = Executors.newFixedThreadPool(n)
+
+    val a = lazyUnit(42 + 1)
+    val wrapped = 0.until(n).foldLeft(a)((pa, _) => fork(pa))
+
+    wrapped(es).get() should be(43)
+  }
 }
