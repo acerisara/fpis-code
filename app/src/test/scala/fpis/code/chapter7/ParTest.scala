@@ -14,19 +14,14 @@ class ParTest extends AnyFunSuite {
 
   val es: ExecutorService = Executors.newFixedThreadPool(5)
 
+  // TODO: Test fork()
+
   test("Par.sortPar") {
     val p1 = sortPar(unit(List(5, 4, 3, 2, 1)))
     p1(es).get() should be(List(1, 2, 3, 4, 5))
 
-    // TODO: How do we check it is actually running in a separate thread?
-    val asyncP1 = fork(sortPar(unit(List(5, 4, 3, 2, 1))))
-    asyncP1(es).get() should be(List(1, 2, 3, 4, 5))
-
     val p2 = sortParM(unit(List(5, 4, 3, 2, 1)))
     p2(es).get() should be(List(1, 2, 3, 4, 5))
-
-    val asyncP2 = fork(sortParM(unit(List(5, 4, 3, 2, 1))))
-    asyncP2(es).get() should be(List(1, 2, 3, 4, 5))
   }
 
   test("Par.parMap") {
