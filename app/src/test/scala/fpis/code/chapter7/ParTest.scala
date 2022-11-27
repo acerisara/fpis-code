@@ -7,14 +7,37 @@ import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.junit.JUnitRunner
 
-import java.util.concurrent.{ExecutorService, Executors}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
 
 @RunWith(classOf[JUnitRunner])
 class ParTest extends AnyFunSuite {
 
   val es: ExecutorService = Executors.newFixedThreadPool(5)
 
-  // TODO: Test fork()
+  class CustomThreadFactory() extends ThreadFactory {
+
+    val nThreads = new AtomicInteger()
+
+    override def newThread(r: Runnable): Thread = {
+      nThreads.incrementAndGet()
+      new Thread(r)
+    }
+  }
+
+  test("Par.fork") {
+    val tf = new CustomThreadFactory()
+    val es = Executors.newCachedThreadPool(tf)
+    tf.nThreads.get() should be(0)
+
+    val p = sortPar(unit(List(5, 4, 3, 2, 1)))
+    p(es).get() should be(List(1, 2, 3, 4, 5))
+    tf.nThreads.get() should be(0)
+
+    val pFork = fork(sortPar(unit(List(5, 4, 3, 2, 1))))
+    pFork(es).get() should be(List(1, 2, 3, 4, 5))
+    tf.nThreads.get() should be(1)
+  }
 
   test("Par.sortPar") {
     val p1 = sortPar(unit(List(5, 4, 3, 2, 1)))
