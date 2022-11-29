@@ -54,4 +54,16 @@ object Par {
     map(pbs)(_.zip(as).filter(_._1).map(_._2))
   }
 
+  def choice[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] =
+    chooser(cond)(if (_) t else f)
+
+  def choiceN[A](n: Par[Int])(choices: List[Par[A]]): Par[A] =
+    chooser(n)(choices(_))
+
+  def chooser[A, B](pa: Par[A])(choices: A => Par[B]): Par[B] =
+    es => {
+      val a = run(es)(pa).get()
+      run(es)(choices(a))
+    }
+
 }

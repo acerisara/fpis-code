@@ -71,4 +71,13 @@ class ParTest extends AnyFunSuite {
 
     wrapped(es).get() should be(43)
   }
+
+  test("Par.choice, Par.choiceN") {
+    val p1 = choice(unit(true))(unit(1), unit(0))
+    p1(es).get() should be(1)
+
+    val p2 = choiceN(unit(2))(List(unit("a"), unit("b"), unit("c")))
+    p2(es).get() should be("c")
+  }
+
 }
