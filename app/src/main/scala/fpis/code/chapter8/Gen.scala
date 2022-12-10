@@ -10,17 +10,10 @@ case class Gen[+A](sample: State[RNG, A]) {
   def listOfN(size: Gen[Int]): Gen[List[A]] =
     size.flatMap(n => Gen.listOfN(n, this))
 
+  def listOfN(n: Int): Gen[List[A]] =
+    Gen.listOfN(n, this)
+
   def unsized: SGen[A] = SGen(_ => this)
-
-}
-
-case class SGen[+A](forSize: Int => Gen[A]) {
-
-  def flatMap[B](f: A => SGen[B]): SGen[B] =
-    SGen(n => forSize(n).flatMap(a => f(a).forSize(n)))
-
-  def listOf[B](g: Gen[B]): SGen[List[B]] =
-    SGen(n => Gen.listOfN(n, g))
 
 }
 

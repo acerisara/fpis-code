@@ -56,6 +56,8 @@ object Prop {
       .getOrElse(Passed)
   }
 
+  def forAll[A](g: SGen[A])(f: A => Boolean): Prop = forAll(g.forSize)(f)
+
   def forAll[A](g: Int => Gen[A])(f: A => Boolean): Prop = Prop {
     (max, n, rng) =>
       val casesPerSize = (n + (max - 1)) / max
@@ -67,7 +69,6 @@ object Prop {
           .map(p =>
             Prop { (max, _, rng) =>
               p.run(max, casesPerSize, rng)
-
             }
           )
           .toList
