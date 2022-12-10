@@ -2,13 +2,25 @@ package fpis.code.chapter8
 
 import fpis.code.chapter6.{RNG, SimpleRNG, State}
 
-case class Gen[A](sample: State[RNG, A]) {
+case class Gen[+A](sample: State[RNG, A]) {
 
   def flatMap[B](f: A => Gen[B]): Gen[B] =
     Gen(sample.flatMap(a => f(a).sample))
 
   def listOfN(size: Gen[Int]): Gen[List[A]] =
     size.flatMap(n => Gen.listOfN(n, this))
+
+  def unsized: SGen[A] = SGen(_ => this)
+
+}
+
+case class SGen[+A](forSize: Int => Gen[A]) {
+
+  def flatMap[B](f: A => SGen[B]): SGen[B] =
+    SGen(n => forSize(n).flatMap(a => f(a).forSize(n)))
+
+  def listOf[B](g: Gen[B]): SGen[List[B]] =
+    SGen(n => Gen.listOfN(n, g))
 
 }
 
@@ -24,14 +36,10 @@ object Gen {
   def unit[A](a: => A): Gen[A] = Gen(State.unit(a))
 
   def boolean: Gen[Boolean] =
-    Gen(
-      State(SimpleRNG.nonNegativeInt).map(n => n % 2 == 0)
-    )
+    Gen(State(SimpleRNG.nonNegativeInt).map(n => n % 2 == 0))
 
   def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] =
-    Gen(
-      State.sequence(List.fill(n)(g.sample))
-    )
+    Gen(State.sequence(List.fill(n)(g.sample)))
 
   def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] =
     boolean.flatMap(if (_) g1 else g2)
