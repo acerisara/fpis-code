@@ -5,10 +5,10 @@ import fpis.code.chapter8.Prop.{FailedCase, MaxSize, SuccessCount, TestCases}
 
 case class Prop(run: (MaxSize, TestCases, RNG) => Result) {
 
-  def &&(p: Prop): Prop = Prop { (m, n, rng) =>
+  private def &&(p: Prop): Prop = Prop { (m, n, rng) =>
     run(m, n, rng) match {
-      case Passed => p.run(m, n, rng)
-      case x      => x
+      case Passed | Proved => p.run(m, n, rng)
+      case x               => x
     }
   }
 
@@ -32,6 +32,10 @@ case object Passed extends Result {
 case class Falsified(failure: FailedCase, successes: SuccessCount)
     extends Result {
   def isFalsified = true
+}
+
+private case object Proved extends Result {
+  def isFalsified: Boolean = false
 }
 
 object Prop {
@@ -77,10 +81,14 @@ object Prop {
       prop.run(max, n, rng)
   }
 
-  def randomStream[A](g: Gen[A])(rng: RNG): LazyList[A] =
+  def check(p: => Boolean): Prop = Prop { (_, _, _) =>
+    if (p) Passed else Falsified("()", 0)
+  }
+
+  private def randomStream[A](g: Gen[A])(rng: RNG): LazyList[A] =
     LazyList.unfold(rng)(rng => Some(g.sample.run(rng)))
 
-  def buildMsg[A](s: A, e: Exception): String =
+  private def buildMsg[A](s: A, e: Exception): String =
     s"test case: $s\n" +
       s"generated an exception: ${e.getMessage}\n" +
       s"stack trace:\n ${e.getStackTrace.mkString("\n")}"
