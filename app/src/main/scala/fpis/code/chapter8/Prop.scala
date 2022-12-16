@@ -1,7 +1,11 @@
 package fpis.code.chapter8
 
 import fpis.code.chapter6.RNG
+import fpis.code.chapter7.Par.Par
+import fpis.code.chapter8.Gen.{choose, weighted}
 import fpis.code.chapter8.Prop.{FailedCase, MaxSize, SuccessCount, TestCases}
+
+import java.util.concurrent.{ExecutorService, Executors}
 
 case class Prop(run: (MaxSize, TestCases, RNG) => Result) {
 
@@ -87,6 +91,14 @@ object Prop {
 
   private def randomStream[A](g: Gen[A])(rng: RNG): LazyList[A] =
     LazyList.unfold(rng)(rng => Some(g.sample.run(rng)))
+
+  val S: Gen[ExecutorService] = weighted(
+    choose(1, 4).map(Executors.newFixedThreadPool) -> .75,
+    Gen.unit(Executors.newCachedThreadPool) -> .25
+  )
+
+  def forAllPar[A](g: Gen[A])(f: A => Par[Boolean]): Prop =
+    forAll(S ** g) { case (s, a) => f(a)(s).get }
 
   private def buildMsg[A](s: A, e: Exception): String =
     s"test case: $s\n" +

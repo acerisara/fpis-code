@@ -76,4 +76,7 @@ object Par {
 
   def joinF[A](a: Par[Par[A]]): Par[A] = flatMap(a)(a => a)
 
+  def equal[A](p: Par[A], p2: Par[A]): Par[Boolean] =
+    Par.map2(p, p2)(_ == _)
+
 }

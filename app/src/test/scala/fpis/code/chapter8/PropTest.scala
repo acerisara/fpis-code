@@ -1,7 +1,8 @@
 package fpis.code.chapter8
 
-import fpis.code.chapter6.SimpleRNG
-import fpis.code.chapter8.Prop.forAll
+import fpis.code.chapter6.{RNG, SimpleRNG}
+import fpis.code.chapter7.Par
+import fpis.code.chapter8.Prop.{MaxSize, TestCases, forAll, forAllPar}
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be
@@ -11,8 +12,6 @@ import org.scalatestplus.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class PropTest extends AnyFunSuite {
 
-  val RNG: SimpleRNG = SimpleRNG(System.currentTimeMillis())
-
   test("List.max property") {
     val smallInt = Gen.choose(-10, 10)
 
@@ -21,8 +20,7 @@ class PropTest extends AnyFunSuite {
       !ns.exists(_ > max)
     }
 
-    val result = maxProp.run(100, 100, RNG)
-    result should be(Passed)
+    run(maxProp) should be(Passed)
   }
 
   test("List.sorted property") {
@@ -37,8 +35,40 @@ class PropTest extends AnyFunSuite {
       }
     }
 
-    val result = sortedProp.run(100, 100, RNG)
-    result should be(Passed)
+    run(sortedProp) should be(Passed)
   }
+
+  test("Par.map law") {
+    val ints = Gen.choose(0, 100)
+
+    val mapProp = forAllPar(ints) { i =>
+      Par.equal(
+        Par.map(Par.unit(i))(_ + 1),
+        Par.unit(i + 1)
+      )
+    }
+
+    run(mapProp) should be(Passed)
+  }
+
+  test("Par.map identity law") {
+    val pints = Gen.choose(0, 10).map(Par.unit)
+
+    val mapProp = forAllPar(pints) { i =>
+      Par.equal(
+        Par.map(i)(x => x),
+        i
+      )
+    }
+
+    run(mapProp) should be(Passed)
+  }
+
+  private def run(
+      p: Prop,
+      maxSize: MaxSize = 100,
+      testCases: TestCases = 100,
+      rng: RNG = SimpleRNG(System.currentTimeMillis())
+  ): Result = p.run(maxSize, testCases, rng)
 
 }

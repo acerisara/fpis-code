@@ -4,6 +4,15 @@ import fpis.code.chapter6.{RNG, SimpleRNG, State}
 
 case class Gen[+A](sample: State[RNG, A]) {
 
+  def map[B](f: A => B): Gen[B] = Gen(sample.map(f))
+
+  def map2[B, C](g: Gen[B])(f: (A, B) => C): Gen[C] =
+    flatMap { a =>
+      g.map { b =>
+        f(a, b)
+      }
+    }
+
   def flatMap[B](f: A => Gen[B]): Gen[B] =
     Gen(sample.flatMap(a => f(a).sample))
 
@@ -14,6 +23,9 @@ case class Gen[+A](sample: State[RNG, A]) {
     Gen.listOfN(n, this)
 
   def unsized: SGen[A] = SGen(_ => this)
+
+  def **[B](g: Gen[B]): Gen[(A, B)] =
+    (this map2 g)((_, _))
 
 }
 
