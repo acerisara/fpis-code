@@ -86,7 +86,7 @@ object Prop {
   }
 
   def check(p: => Boolean): Prop = Prop { (_, _, _) =>
-    if (p) Passed else Falsified("()", 0)
+    if (p) Proved else Falsified("()", 0)
   }
 
   private def randomStream[A](g: Gen[A])(rng: RNG): LazyList[A] =
