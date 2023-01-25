@@ -64,6 +64,19 @@ class PropTest extends AnyFunSuite {
     run(mapProp) should be(Passed)
   }
 
+  test("Par.fork property") {
+    val pints = Gen.choose(0, 10).map(Par.unit)
+
+    val forkProp = forAllPar(pints) { i =>
+      Par.equal(
+        Par.fork(i),
+        i
+      )
+    }
+
+    run(forkProp) should be(Passed)
+  }
+
   private def run(
       p: Prop,
       maxSize: MaxSize = 100,
