@@ -4,27 +4,43 @@ import fpis.code.chapter8.Prop.forAll
 import fpis.code.chapter8.{Gen, Prop}
 
 import scala.language.implicitConversions
+import scala.util.matching.Regex
 
 trait Parsers[ParseError, Parser[+_]] { self =>
 
   def run[A](p: Parser[A])(input: String): Either[ParseError, A]
+
   def char(c: Char): Parser[Char] = string(c.toString) map (_.charAt(0))
-  def or[A](p: Parser[A], p2: Parser[A]): Parser[A]
+
+  def or[A](p: Parser[A], p2: => Parser[A]): Parser[A]
+
   def listOfN[A](n: Int, p: Parser[A]): Parser[List[A]] =
     if (n > 0) map2(p, listOfN(n - 1, p))(_ :: _) else succeed(List())
+
   def many[A](p: Parser[A]): Parser[List[A]] =
     map2(p, many(p))(_ :: _).or(succeed(List()))
+
   def many1[A](p: Parser[A]): Parser[List[A]] = map2(p, many(p))(_ :: _)
 
   def map[A, B](p: Parser[A])(f: A => B): Parser[B]
+
   def succeed[A](a: A): Parser[A] = string("") map (_ => a)
+
   def slice[A](p: Parser[A]): Parser[String]
-  def product[A, B](p: Parser[A], p2: Parser[B]): Parser[(A, B)]
-  def map2[A, B, C](p: Parser[A], p2: Parser[B])(f: (A, B) => C): Parser[C] =
+
+  def product[A, B](p: Parser[A], p2: => Parser[B]): Parser[(A, B)]
+
+  def map2[A, B, C](p: Parser[A], p2: => Parser[B])(f: (A, B) => C): Parser[C] =
     map(product(p, p2))(f.tupled)
+
+  def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B]
+
+  def thatManyChars(c: Char): Parser[String] =
+    flatMap("""\d.*""".r)(n => listOfN(n.toInt, char(c)).toString)
 
   implicit def string(s: String): Parser[String]
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps[A](p)
+  implicit def regex(r: Regex): Parser[String]
   implicit def asStringParser[A](a: A)(implicit
       f: A => Parser[String]
   ): ParserOps[String] = ParserOps(f(a))
@@ -37,6 +53,7 @@ trait Parsers[ParseError, Parser[+_]] { self =>
     def slice(): Parser[String] = self.slice(p)
     def product[B](p2: Parser[B]): Parser[(A, B)] = self.product(p, p2)
     def **[B](p2: Parser[B]): Parser[(A, B)] = self.product(p, p2)
+    def flatMap[B](f: A => Parser[B]): Parser[B] = self.flatMap(p)(f)
   }
 
   object Laws {
