@@ -46,6 +46,73 @@ object JSON {
       }
     }
 
-    jNumber()
+    def jString(): Parser[JString] = {
+      val quote = char('"')
+      val chars = """\w""".r.many
+
+      // Simplified version, doesn't support control characters
+      (quote ** chars ** quote).map { case ((_, string), _) =>
+        JString(string)
+      }
+    }
+
+    def jNull(): Parser[JSON] = {
+      string("null").map(_ => JNull)
+    }
+
+    def jBool(): Parser[JBool] = {
+      (string("true") | string("false")).map(s => JBool("true" == s))
+    }
+
+    def jValue(): Parser[JSON] = {
+      val whitespace = whiteSpace()
+
+      (whitespace ** (jString() | jNumber() | jBool() | jNull() | jArray() | jObject()) ** whitespace)
+        .map { case ((_, value), _) => value }
+    }
+
+    def jArray(): Parser[JArray] = {
+      val open = char('[')
+      val close = char(']')
+      val comma = char(',')
+      val value = jValue()
+
+      val values = (value ** (comma ** value).manyL.map(_.map(_._2))).map {
+        case (value, values) =>
+          (value +: values).toIndexedSeq
+      }
+
+      val body = (whiteSpace().map(_ => Vector()) | values).map(v => JArray(v))
+
+      (open ** body ** close).map { case ((_, values), _) => values }
+    }
+
+    def jObject(): Parser[JObject] = {
+      val open = char('{')
+      val close = char('}')
+      val comma = char(',')
+      val colon = char(':')
+      val whitespace = whiteSpace()
+      val string = jString()
+      val value = jValue()
+
+      val field = (whitespace ** string ** whitespace ** colon ** value).map {
+        case ((((_, name), _), _), value) =>
+          name.get -> value
+      }
+
+      val fields = (field ** (comma ** field).manyL.map(_.map(_._2))).map {
+        case (value, values) =>
+          value +: values
+      }
+
+      val body = (whitespace.map(_ => List()) | fields).map { v =>
+        JObject(v.toMap)
+      }
+
+      (open ** body ** close).map { case ((_, fields), _) => fields }
+    }
+
+    jObject()
   }
 }
