@@ -6,7 +6,20 @@ import fpis.code.chapter8.{Gen, Prop}
 import scala.language.implicitConversions
 import scala.util.matching.Regex
 
-trait Parsers[ParseError, Parser[+_]] { self =>
+case class Location(input: String, offset: Int = 0) {
+
+  lazy val line: Int = input.slice(0, offset + 1).count(_ == '\n') + 1
+
+  lazy val col: Int = input.slice(0, offset + 1).lastIndexOf('\n') match {
+    case -1        => offset + 1
+    case lineStart => offset - lineStart
+  }
+
+}
+
+case class ParseError(stack: List[(Location, String)])
+
+trait Parsers[Parser[+_]] { self =>
 
   // Primitives
   def run[A](p: Parser[A])(input: String): Either[ParseError, A]
@@ -18,6 +31,14 @@ trait Parsers[ParseError, Parser[+_]] { self =>
   def slice[A](p: Parser[A]): Parser[String]
 
   def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B]
+
+  def label[A](msg: String)(p: Parser[A]): Parser[A]
+
+  def errorLocation(e: ParseError): Location
+
+  def errorMessage(e: ParseError): String
+
+  def scope[A](msg: String)(p: Parser[A]): Parser[A]
 
   // Combinators
   def char(c: Char): Parser[String] = string(c.toString)
