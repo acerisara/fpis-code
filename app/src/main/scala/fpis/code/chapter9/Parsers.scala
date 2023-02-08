@@ -15,6 +15,8 @@ case class Location(input: String, offset: Int = 0) {
     case lineStart => offset - lineStart
   }
 
+  def toError(msg: String): ParseError = ParseError(List((this, msg)))
+
 }
 
 case class ParseError(stack: List[(Location, String)])
@@ -39,6 +41,12 @@ trait Parsers[Parser[+_]] { self =>
   def errorMessage(e: ParseError): String
 
   def scope[A](msg: String)(p: Parser[A]): Parser[A]
+
+  def attempt[A](p: Parser[A]): Parser[A]
+
+  implicit def string(s: String): Parser[String]
+
+  implicit def regex(r: Regex): Parser[String]
 
   // Combinators
   def char(c: Char): Parser[String] = string(c.toString)
@@ -79,9 +87,8 @@ trait Parsers[Parser[+_]] { self =>
   def thatManyChars(c: Char): Parser[String] =
     flatMap(digit)(n => listOfN(n.toInt, char(c)).toString)
 
-  implicit def string(s: String): Parser[String]
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps[A](p)
-  implicit def regex(r: Regex): Parser[String]
+
   implicit def asStringParser[A](a: A)(implicit
       f: A => Parser[String]
   ): ParserOps[String] = ParserOps(f(a))
