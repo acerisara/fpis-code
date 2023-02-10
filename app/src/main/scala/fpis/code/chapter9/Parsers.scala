@@ -24,7 +24,19 @@ case class Location(input: String, offset: Int = 0) {
 
 }
 
-case class ParseError(stack: List[(Location, String)])
+case class ParseError(stack: List[(Location, String)]) {
+
+  def push(location: Location, msg: String): ParseError =
+    copy(stack = (location, msg) :: stack)
+
+  def label(s: String): ParseError =
+    ParseError(latestLocation.map((_, s)).toList)
+
+  def latestLocation: Option[Location] = latest.map(_._1)
+
+  def latest: Option[(Location, String)] = stack.lastOption
+
+}
 
 trait Parsers[Parser[+_]] { self =>
 
@@ -40,10 +52,6 @@ trait Parsers[Parser[+_]] { self =>
   def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B]
 
   def label[A](msg: String)(p: Parser[A]): Parser[A]
-
-  def errorLocation(e: ParseError): Location
-
-  def errorMessage(e: ParseError): String
 
   def scope[A](msg: String)(p: Parser[A]): Parser[A]
 

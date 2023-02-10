@@ -25,13 +25,11 @@ class MyParser extends Parsers[Parser] {
 
   override def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] = ???
 
-  override def label[A](msg: String)(p: Parser[A]): Parser[A] = ???
+  override def label[A](msg: String)(p: Parser[A]): Parser[A] =
+    location => p(location).mapError(_.label(msg))
 
-  override def errorLocation(e: ParseError): Location = ???
-
-  override def errorMessage(e: ParseError): String = ???
-
-  override def scope[A](msg: String)(p: Parser[A]): Parser[A] = ???
+  override def scope[A](msg: String)(p: Parser[A]): Parser[A] =
+    location => p(location).mapError(_.push(location, msg))
 
   override def attempt[A](p: Parser[A]): Parser[A] = ???
 
@@ -50,7 +48,15 @@ class MyParser extends Parsers[Parser] {
       }
 }
 
-trait Result[+A]
+trait Result[+A] {
+
+  def mapError(f: ParseError => ParseError): Result[A] = this match {
+    case Failure(e) => Failure(f(e))
+    case _          => this
+  }
+
+}
+
 case class Success[+A](get: A, charsConsumed: Int) extends Result[A]
 case class Failure(get: ParseError) extends Result[Nothing]
 
