@@ -17,6 +17,11 @@ case class Location(input: String, offset: Int = 0) {
 
   def toError(msg: String): ParseError = ParseError(List((this, msg)))
 
+  def toParse: String = input.substring(offset)
+
+  def consumed(charConsumed: Int): String =
+    input.substring(offset, charConsumed)
+
 }
 
 case class ParseError(stack: List[(Location, String)])
