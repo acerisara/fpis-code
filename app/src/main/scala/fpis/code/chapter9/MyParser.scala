@@ -28,7 +28,15 @@ class MyParser extends Parsers[Parser] {
       case f @ Failure(_, _) => f
     }
 
-  override def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] = ???
+  override def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] =
+    (location: Location) =>
+      p(location) match {
+        case Success(a, c) =>
+          f(a)(location.advanceBy(c))
+            .addCommit(c != 0)
+            .advanceSuccess(c)
+        case f @ Failure(_, _) => f
+      }
 
   override def label[A](msg: String)(p: Parser[A]): Parser[A] =
     location => p(location).mapError(_.label(msg))
@@ -68,6 +76,16 @@ trait Result[+A] {
   def uncommit: Result[A] = this match {
     case Failure(e, true) => Failure(e, isCommitted = false)
     case _                => this
+  }
+
+  def addCommit(isCommitted: Boolean): Result[A] = this match {
+    case Failure(e, c) => Failure(e, c || isCommitted)
+    case _             => this
+  }
+
+  def advanceSuccess(n: Int): Result[A] = this match {
+    case Success(a, m) => Success(a, n + m)
+    case _             => this
   }
 
 }
