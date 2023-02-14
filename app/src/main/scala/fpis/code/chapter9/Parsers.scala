@@ -86,7 +86,7 @@ trait Parsers[Parser[+_]] { self =>
     p.map(Some(_)) or succeed(None)
 
   // Accessories
-  def digit: Parser[String] = """[0-9]""".r
+  def digit: Parser[String] = """\d""".r
 
   def digit1: Parser[String] = """[1-9]""".r
 
@@ -102,7 +102,7 @@ trait Parsers[Parser[+_]] { self =>
   ): ParserOps[String] = ParserOps(f(a))
 
   case class ParserOps[A](p: Parser[A]) {
-    def |[B >: A](p2: Parser[B]): Parser[B] = self.or(p, p2)
+    def |[B >: A](p2: => Parser[B]): Parser[B] = self.or(p, p2)
     def or[B >: A](p2: => Parser[B]): Parser[B] = self.or(p, p2)
     def many: Parser[String] = self.many(p).map(l => l.foldLeft("")(_ + _))
     def manyL: Parser[List[A]] = self.many(p)

@@ -52,15 +52,15 @@ class MyParser extends Parsers[Parser] {
       if (location.toParse.startsWith(s))
         Success(s, s.length)
       else
-        Failure(location.toError("Expected: " + s), isCommitted = true)
+        Failure(location.toError(s"expected: ($s)"), isCommitted = true)
 
   override implicit def regex(r: Regex): Parser[String] =
     (location: Location) =>
-      r.findPrefixOf(location.input) match {
+      r.findPrefixOf(location.toParse) match {
         case None =>
           Failure(
-            location.toError("Expected string matching: " + r),
-            isCommitted = true
+            location.toError(s"expected string matching: ($r)"),
+            isCommitted = false
           )
         case Some(m) => Success(m, m.length)
       }
