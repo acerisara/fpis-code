@@ -35,55 +35,50 @@ object JSON {
     }
   }
 
+  def jNumberParser[Parser[+_]](P: Parsers[Parser]): Parser[JNumber] = {
+    import P._
+
+    // Simplified version, doesn't support e
+    val number = regex("(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?".r)
+    number.map(n => JNumber(n.toDouble))
+  }
+
+  def jNullParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
+    import P._
+
+    string("null").map(_ => JNull)
+  }
+
+  def jBoolParser[Parser[+_]](P: Parsers[Parser]): Parser[JBool] = {
+    import P._
+
+    (string("true") | string("false")).map(s => JBool("true" == s))
+  }
+
   def jsonParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
     import P._
 
     // WIP, grammar at https://www.json.org/json-en.html
+
     val ws = whitespaceParser(P)
     val jString = jStringParser(P)
-
-    def jNumber: Parser[JNumber] = {
-      val dot = char('.')
-      val zero = char('0')
-      val plus = char('+')
-      val minus = char('-')
-      val e = char('e') | char('E')
-
-      val intDigits = digit1 *** digits.maybe
-      val intNumber = zero | intDigits
-
-      val integer = minus.maybe *** intNumber
-      val fraction = dot *** digits
-      val exponent = e *** (plus | minus).maybe *** digits
-
-      (integer *** fraction.maybe *** exponent.maybe).map { n =>
-        JNumber(n.toDouble)
-      }
-    }
-
-    def jNull: Parser[JSON] = {
-      string("null").map(_ => JNull)
-    }
-
-    def jBool: Parser[JBool] = {
-      (string("true") | string("false")).map(s => JBool("true" == s))
-    }
+    val jNumber = jNumberParser(P)
+    val jNull = jNullParser(P)
+    val jBool = jBoolParser(P)
 
     def jValue: Parser[JSON] = {
       val literal = jString | jNumber | jBool | jNull
       val value = literal | jArray | jObject
 
-      (ws ** value ** ws)
-        .map { case ((_, value), _) => value }
+      (ws ** value ** ws).map { case ((_, value), _) => value }
     }
 
-    def jArray: Parser[JArray] = {
+    def jArray: Parser[JSON] = {
       val open = char('[')
       val close = char(']')
       val comma = char(',')
-      val value = jValue
 
-      val values = (value ** (comma ** value).manyL.map(_.map(_._2))).map {
+      val values = (jValue ** (comma ** jValue).manyL.map(_.map(_._2))).map {
         case (value, values) =>
           (value +: values).toIndexedSeq
       }
@@ -93,14 +88,13 @@ object JSON {
       (open ** body ** close).map { case ((_, values), _) => values }
     }
 
-    def jObject: Parser[JObject] = {
+    def jObject: Parser[JSON] = {
       val open = char('{')
       val close = char('}')
       val comma = char(',')
       val colon = char(':')
-      val value = jValue
 
-      val field = (ws ** jString ** ws ** colon ** value).map {
+      val field = (ws ** jString ** ws ** colon ** jValue).map {
         case ((((_, name), _), _), value) =>
           name.get -> value
       }
@@ -110,10 +104,9 @@ object JSON {
           value +: values
       }
 
-      val body =
-        (ws.map(_ => List()) | (ws ** fields).map(_._2)).map { v =>
-          JObject(v.toMap)
-        }
+      val body = (ws.map(_ => List()) | (ws ** fields).map(_._2)).map { v =>
+        JObject(v.toMap)
+      }
 
       (open ** body ** close).map { case ((_, fields), _) => fields }
     }

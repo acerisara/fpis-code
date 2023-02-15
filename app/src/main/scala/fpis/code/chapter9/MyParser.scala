@@ -52,7 +52,7 @@ class MyParser extends Parsers[Parser] {
       if (location.toParse.startsWith(s))
         Success(s, s.length)
       else
-        Failure(location.toError(s"expected: ($s)"), isCommitted = true)
+        Failure(location.toError(s"expected: ($s)"), isCommitted = false)
 
   override implicit def regex(r: Regex): Parser[String] =
     (location: Location) =>
