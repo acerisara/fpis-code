@@ -124,6 +124,30 @@ class MyParserTest extends AnyFunSuite {
     )
   }
 
+  test("jField parser") {
+    val jField = jFieldParser(myParser)
+
+    myParser.run(jField)("""
+        |"a": 1
+        |""".stripMargin) should be(Right("a" -> JNumber(1)))
+
+    myParser.run(jField)("""
+        | "a" : true
+        |""".stripMargin) should be(Right("a" -> JBool(true)))
+
+    myParser.run(jField)("""
+        | "a" : true,
+        |""".stripMargin) should be(Right("a" -> JBool(true)))
+
+    myParser.run(jField)("""
+        | "a" : "abc" ,
+        |""".stripMargin) should be(Right("a" -> JString("abc")))
+
+    myParser.run(jField)("""
+        | "a" : "abc" ,  
+        |""".stripMargin) should be(Right("a" -> JString("abc")))
+  }
+
   test("Empty object") {
     val jObject = JSON.jsonParser(myParser)
 

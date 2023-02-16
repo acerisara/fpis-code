@@ -80,6 +80,9 @@ trait Parsers[Parser[+_]] { self =>
       b <- p2
     } yield f(a, b)
 
+  def opt[A](p: Parser[A]): Parser[Option[A]] =
+    p.map(Some(_)) or succeed(None)
+
   // Accessories
   def digit: Parser[String] = """\d""".r
 
@@ -101,14 +104,15 @@ trait Parsers[Parser[+_]] { self =>
     def product[B](p2: Parser[B]): Parser[(A, B)] = self.product(p, p2)
     def flatMap[B](f: A => Parser[B]): Parser[B] = self.flatMap(p)(f)
     def **[B](p2: Parser[B]): Parser[(A, B)] = self.product(p, p2)
+    def opt: Parser[Option[A]] = self.opt(p)
 
-    def *>[B](p2: Parser[B]): Parser[B] =
+    def >>[B](p2: Parser[B]): Parser[B] =
       self.map(self.product(p, p2))(a => a._2)
 
-    def <*[B](p2: Parser[B]): Parser[A] =
+    def <<[B](p2: Parser[B]): Parser[A] =
       self.map(self.product(p, p2))(a => a._1)
 
-    def +*(p2: Parser[List[A]]): Parser[List[A]] = {
+    def ++(p2: Parser[List[A]]): Parser[List[A]] = {
       self.map(self.product(p, p2)) { case (a, as) =>
         a +: as
       }

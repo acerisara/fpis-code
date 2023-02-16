@@ -28,7 +28,7 @@ object JSON {
     val chars = regex("\\w".r).many
 
     // Simplified version, doesn't support control characters
-    (quote *> chars <* quote).map(JString)
+    (quote >> chars << quote).map(JString)
   }
 
   def jNumberParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
@@ -64,7 +64,7 @@ object JSON {
     // TODO: Add support for array and objects
     val value = literal
 
-    ws *> value <* ws
+    ws >> value << ws
   }
 
   def jArrayParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
@@ -77,10 +77,25 @@ object JSON {
     val ws = whitespaceParser(P)
     val jValue = jValueParser(P)
 
-    val jValues = (ws *> comma *> jValue).manyL
-    val values = (jValue +* jValues).map(_.toIndexedSeq).map(JArray)
+    val jValues = (ws >> comma >> jValue).manyL
+    val values = (jValue ++ jValues).map(_.toIndexedSeq).map(JArray)
 
-    open *> values <* close
+    open >> values << close
+  }
+
+  def jFieldParser[Parser[+_]](P: Parsers[Parser]): Parser[(String, JSON)] = {
+    import P._
+
+    val colon = char(':')
+    val comma = char(',')
+
+    val ws = whitespaceParser(P)
+    val jString = jStringParser(P)
+    val jValue = jValueParser(P)
+
+    (ws >> jString).map(
+      _.get
+    ) ** (ws >> colon >> jValue << comma.opt << ws)
   }
 
   def jsonParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
@@ -89,30 +104,18 @@ object JSON {
     // WIP, grammar at https://www.json.org/json-en.html
 
     val ws = whitespaceParser(P)
-    val jString = jStringParser(P)
-    val jValue = jValueParser(P)
 
     def jObject: Parser[JSON] = {
       val open = char('{')
       val close = char('}')
-      val comma = char(',')
-      val colon = char(':')
 
-      val field = (ws ** jString ** ws ** colon ** jValue).map {
-        case ((((_, name), _), _), value) =>
-          name.get -> value
-      }
+      val jField = jFieldParser(P)
 
-      val fields = (field ** (comma ** field).manyL.map(_.map(_._2))).map {
-        case (value, values) =>
-          value +: values
-      }
-
-      val body = (ws.map(_ => List()) | (ws ** fields).map(_._2)).map { v =>
+      val body = (ws.map(_ => List()) | (ws >> jField.manyL)).map { v =>
         JObject(v.toMap)
       }
 
-      (open ** body ** close).map { case ((_, fields), _) => fields }
+      open >> body << close
     }
 
     jObject
