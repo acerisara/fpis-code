@@ -2,6 +2,7 @@ package fpis.code.chapter9
 
 import fpis.code.chapter9.MyParser.Parser
 
+import scala.Function.tupled
 import scala.language.implicitConversions
 import scala.util.matching.Regex
 
@@ -48,11 +49,17 @@ class MyParser extends Parsers[Parser] {
     p(location).uncommit
 
   override implicit def string(s: String): Parser[String] =
-    (location: Location) =>
-      if (location.toParse.startsWith(s))
+    (location: Location) => {
+      val commonPrefix = s
+        .zip(location.toParse)
+        .takeWhile(tupled(_ == _))
+        .length
+
+      if (s.length == commonPrefix) {
         Success(s, s.length)
-      else
-        Failure(location.toError(s"expected: ($s)"), isCommitted = false)
+      } else
+        Failure(location.toError(s"expected: ($s)"), commonPrefix != 0)
+    }
 
   override implicit def regex(r: Regex): Parser[String] =
     (location: Location) =>
