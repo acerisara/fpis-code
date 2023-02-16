@@ -10,8 +10,6 @@ object JSON {
   case class JArray(get: IndexedSeq[JSON]) extends JSON
   case class JObject(get: Map[String, JSON]) extends JSON
 
-  val empty = ""
-
   def whitespaceParser[Parser[+_]](P: Parsers[Parser]): Parser[String] = {
     import P._
 
@@ -20,7 +18,7 @@ object JSON {
     val carriageReturn = char('\r')
     val horizontalTab = char('\t')
 
-    empty | (space | linefeed | carriageReturn | horizontalTab).many
+    (space | linefeed | carriageReturn | horizontalTab).many
   }
 
   def jStringParser[Parser[+_]](P: Parsers[Parser]): Parser[JString] = {

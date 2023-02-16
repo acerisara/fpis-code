@@ -1,6 +1,6 @@
 package fpis.code.chapter9
 
-import fpis.code.chapter9.JSON.{JBool, JNull, JNumber, JString}
+import fpis.code.chapter9.JSON._
 import fpis.code.chapter9.MyParser.Parser
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
@@ -17,19 +17,25 @@ class MyParserTest extends AnyFunSuite {
   test("Whitespace parser") {
     val ws = JSON.whitespaceParser(myParser)
 
-    myParser.run(ws)("") should be(Right(""))
-    myParser.run(ws)(" ") should be(Right(""))
-    myParser.run(ws)("  ") should be(Right(""))
-    myParser.run(ws)("""
+    myParser.run(ws)("").isRight should be(true)
+    myParser.run(ws)(" ").isRight should be(true)
+    myParser.run(ws)("  ").isRight should be(true)
+
+    myParser
+      .run(ws)("""
         |
         |
-        |""".stripMargin) should be(Right(""))
-    myParser.run(ws)("""
+        |""".stripMargin)
+      .isRight should be(true)
+
+    myParser
+      .run(ws)("""
         |
         |
         |
         |
-        |  """.stripMargin) should be(Right(""))
+        |  """.stripMargin)
+      .isRight should be(true)
   }
 
   test("jString parser") {
@@ -63,6 +69,17 @@ class MyParserTest extends AnyFunSuite {
 
     myParser.run(jBool)("true") should be(Right(JBool(true)))
     myParser.run(jBool)("false") should be(Right(JBool(false)))
+  }
+
+  test("Empty object") {
+    val jObject = JSON.jsonParser(myParser)
+
+    myParser.run(jObject)("{}") should be(Right(JObject(Map.empty)))
+    myParser.run(jObject)("{  }") should be(Right(JObject(Map.empty)))
+
+    myParser.run(jObject)("""{
+        |
+        |}""".stripMargin) should be(Right(JObject(Map.empty)))
   }
 
 }
