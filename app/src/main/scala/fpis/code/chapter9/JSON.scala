@@ -33,7 +33,7 @@ object JSON {
     }
   }
 
-  def jNumberParser[Parser[+_]](P: Parsers[Parser]): Parser[JNumber] = {
+  def jNumberParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
     import P._
 
     // Simplified version, doesn't support e
@@ -47,10 +47,43 @@ object JSON {
     string("null").map(_ => JNull)
   }
 
-  def jBoolParser[Parser[+_]](P: Parsers[Parser]): Parser[JBool] = {
+  def jBoolParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
     import P._
 
     (string("true") | string("false")).map(s => JBool("true" == s))
+  }
+
+  def jValueParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
+    import P._
+
+    val jString = jStringParser(P)
+    val jNumber = jNumberParser(P)
+    val jNull = jNullParser(P)
+    val jBool = jBoolParser(P)
+
+    val literal = jString | jNumber | jBool | jNull
+    val value = literal // TODO: Add support for array and objects
+
+    value
+  }
+
+  def jArrayParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
+    import P._
+
+    val open = char('[')
+    val close = char(']')
+    val comma = char(',')
+
+    val jValue = jValueParser(P)
+
+    val values = (jValue ** (comma ** jValue).manyL.map(_.map(_._2))).map {
+      case (value, values) =>
+        (value +: values).toIndexedSeq
+    }
+
+    val body = values.map(v => JArray(v))
+
+    (open ** body ** close).map { case ((_, values), _) => values }
   }
 
   def jsonParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
@@ -60,31 +93,7 @@ object JSON {
 
     val ws = whitespaceParser(P)
     val jString = jStringParser(P)
-    val jNumber = jNumberParser(P)
-    val jNull = jNullParser(P)
-    val jBool = jBoolParser(P)
-
-    def jValue: Parser[JSON] = {
-      val literal = jString | jNumber | jBool | jNull
-      val value = literal | jArray | jObject
-
-      (ws ** value ** ws).map { case ((_, value), _) => value }
-    }
-
-    def jArray: Parser[JSON] = {
-      val open = char('[')
-      val close = char(']')
-      val comma = char(',')
-
-      val values = (jValue ** (comma ** jValue).manyL.map(_.map(_._2))).map {
-        case (value, values) =>
-          (value +: values).toIndexedSeq
-      }
-
-      val body = (ws.map(_ => Vector()) | values).map(v => JArray(v))
-
-      (open ** body ** close).map { case ((_, values), _) => values }
-    }
+    val jValue = jValueParser(P)
 
     def jObject: Parser[JSON] = {
       val open = char('{')

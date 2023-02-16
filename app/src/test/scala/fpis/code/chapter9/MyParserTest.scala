@@ -71,6 +71,30 @@ class MyParserTest extends AnyFunSuite {
     myParser.run(jBool)("false") should be(Right(JBool(false)))
   }
 
+  test("jArray parser") {
+    val jArray = JSON.jArrayParser(myParser)
+
+    myParser.run(jArray)("[1,2,3]") should be(
+      Right(JArray(Vector(JNumber(1), JNumber(2), JNumber(3))))
+    )
+
+    myParser.run(jArray)("""["a","b"]""") should be(
+      Right(JArray(Vector(JString("a"), JString("b"))))
+    )
+
+    myParser.run(jArray)("""[true,false]""") should be(
+      Right(JArray(Vector(JBool(true), JBool(false))))
+    )
+
+    myParser.run(jArray)("""[null]""") should be(
+      Right(JArray(Vector(JNull)))
+    )
+
+    myParser.run(jArray)("""[1,"a",true,null]""") should be(
+      Right(JArray(Vector(JNumber(1), JString("a"), JBool(true), JNull)))
+    )
+  }
+
   test("Empty object") {
     val jObject = JSON.jsonParser(myParser)
 
