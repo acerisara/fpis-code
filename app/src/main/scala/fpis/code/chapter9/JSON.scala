@@ -74,11 +74,12 @@ object JSON {
     val close = char(']')
     val comma = char(',')
 
+    val ws = whitespaceParser(P)
     val jValue = jValueParser(P)
+    val jValues = (ws ** comma ** ws ** jValue ** ws).manyL.map(_.map(_._1._2))
 
-    val values = (jValue ** (comma ** jValue).manyL.map(_.map(_._2))).map {
-      case (value, values) =>
-        (value +: values).toIndexedSeq
+    val values = (jValue ** jValues).map { case (value, values) =>
+      (value +: values).toIndexedSeq
     }
 
     val body = values.map(v => JArray(v))
