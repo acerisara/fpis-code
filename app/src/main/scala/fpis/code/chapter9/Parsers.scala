@@ -65,8 +65,6 @@ trait Parsers[Parser[+_]] { self =>
   def many[A](p: Parser[A]): Parser[List[A]] =
     map2(p, many(p))(_ :: _).or(succeed(List()))
 
-  def many1[A](p: Parser[A]): Parser[List[A]] = map2(p, many(p))(_ :: _)
-
   def map[A, B](p: Parser[A])(f: A => B): Parser[B] =
     flatMap(p)(a => succeed(f(a)))
 
@@ -82,15 +80,8 @@ trait Parsers[Parser[+_]] { self =>
       b <- p2
     } yield f(a, b)
 
-  def opt[A](p: Parser[A]): Parser[Option[A]] =
-    p.map(Some(_)) or succeed(None)
-
   // Accessories
   def digit: Parser[String] = """\d""".r
-
-  def digit1: Parser[String] = """[1-9]""".r
-
-  def digits: Parser[String] = digit.many1().map(l => l.foldLeft("")(_ + _))
 
   def thatManyChars(c: Char): Parser[String] =
     flatMap(digit)(n => listOfN(n.toInt, char(c)).toString)
@@ -106,17 +97,22 @@ trait Parsers[Parser[+_]] { self =>
     def or[B >: A](p2: => Parser[B]): Parser[B] = self.or(p, p2)
     def many: Parser[String] = self.many(p).map(l => l.foldLeft("")(_ + _))
     def manyL: Parser[List[A]] = self.many(p)
-    def many1(): Parser[List[A]] = self.many1(p)
     def map[B](f: A => B): Parser[B] = self.map(p)(f)
     def product[B](p2: Parser[B]): Parser[(A, B)] = self.product(p, p2)
     def flatMap[B](f: A => Parser[B]): Parser[B] = self.flatMap(p)(f)
     def **[B](p2: Parser[B]): Parser[(A, B)] = self.product(p, p2)
 
-    def ***[B](p2: Parser[B]): Parser[String] =
-      self.map(self.product(p, p2))(a => a._1.toString + a._2.toString)
+    def *>[B](p2: Parser[B]): Parser[B] =
+      self.map(self.product(p, p2))(a => a._2)
 
-    def maybe: Parser[String] =
-      self.opt(p).map(a => a.map(_.toString)).map(_.getOrElse(""))
+    def <*[B](p2: Parser[B]): Parser[A] =
+      self.map(self.product(p, p2))(a => a._1)
+
+    def +*(p2: Parser[List[A]]): Parser[List[A]] = {
+      self.map(self.product(p, p2)) { case (a, as) =>
+        a +: as
+      }
+    }
   }
 
   object Laws {

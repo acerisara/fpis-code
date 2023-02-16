@@ -28,9 +28,7 @@ object JSON {
     val chars = regex("\\w".r).many
 
     // Simplified version, doesn't support control characters
-    (quote ** chars ** quote).map { case ((_, string), _) =>
-      JString(string)
-    }
+    (quote *> chars <* quote).map(JString)
   }
 
   def jNumberParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
@@ -38,7 +36,7 @@ object JSON {
 
     // Simplified version, doesn't support e
     val number = regex("(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?".r)
-    number.map(n => JNumber(n.toDouble))
+    number.map(_.toDouble).map(JNumber)
   }
 
   def jNullParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
@@ -50,21 +48,23 @@ object JSON {
   def jBoolParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
     import P._
 
-    (string("true") | string("false")).map(s => JBool("true" == s))
+    (string("true") | string("false")).map("true" == _).map(JBool)
   }
 
   def jValueParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
     import P._
 
+    val ws = whitespaceParser(P)
     val jString = jStringParser(P)
     val jNumber = jNumberParser(P)
     val jNull = jNullParser(P)
     val jBool = jBoolParser(P)
 
     val literal = jString | jNumber | jBool | jNull
-    val value = literal // TODO: Add support for array and objects
+    // TODO: Add support for array and objects
+    val value = literal
 
-    value
+    ws *> value <* ws
   }
 
   def jArrayParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
@@ -76,15 +76,11 @@ object JSON {
 
     val ws = whitespaceParser(P)
     val jValue = jValueParser(P)
-    val jValues = (ws ** comma ** ws ** jValue ** ws).manyL.map(_.map(_._1._2))
 
-    val values = (jValue ** jValues).map { case (value, values) =>
-      (value +: values).toIndexedSeq
-    }
+    val jValues = (ws *> comma *> jValue).manyL
+    val values = (jValue +* jValues).map(_.toIndexedSeq).map(JArray)
 
-    val body = values.map(v => JArray(v))
-
-    (open ** body ** close).map { case ((_, values), _) => values }
+    open *> values <* close
   }
 
   def jsonParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {

@@ -109,6 +109,19 @@ class MyParserTest extends AnyFunSuite {
     myParser.run(jArray)("[1 , 2 ]") should be(
       Right(JArray(Vector(JNumber(1), JNumber(2))))
     )
+
+    myParser.run(jArray)("[ 1 , 2 ]") should be(
+      Right(JArray(Vector(JNumber(1), JNumber(2))))
+    )
+
+    myParser.run(jArray)("""[
+        |  1,
+        |  "abc",
+        |     true,
+        |     null
+        |]""".stripMargin) should be(
+      Right(JArray(Vector(JNumber(1), JString("abc"), JBool(true), JNull)))
+    )
   }
 
   test("Empty object") {
