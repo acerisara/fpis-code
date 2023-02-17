@@ -78,7 +78,8 @@ object JSON {
     val jValue = jValueParser(P)
 
     val jValues = (ws >> comma >> jValue).manyL
-    val values = (jValue ++ jValues).map(_.toIndexedSeq).map(JArray)
+    val values = (ws >> (jValue ++ jValues).map(_.toIndexedSeq).map(JArray).opt)
+      .map(_.getOrElse(JArray(Vector.empty)))
 
     open >> values << close
   }

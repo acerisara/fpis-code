@@ -74,6 +74,10 @@ class MyParserTest extends AnyFunSuite {
   test("jArray parser") {
     val jArray = JSON.jArrayParser(myParser)
 
+    myParser.run(jArray)("[]") should be(
+      Right(JArray(Vector.empty))
+    )
+
     myParser.run(jArray)("[1]") should be(
       Right(JArray(Vector(JNumber(1))))
     )
