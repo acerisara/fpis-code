@@ -10,7 +10,7 @@ object JSON {
   case class JArray(get: IndexedSeq[JSON]) extends JSON
   case class JObject(get: Map[String, JSON]) extends JSON
 
-  def whitespaceParser[Parser[+_]](P: Parsers[Parser]): Parser[String] = {
+  def whitespaceParser[Parser[+_]](P: Parsers[Parser]): Parser[Unit] = {
     import P._
 
     val space = char(' ')
@@ -18,14 +18,14 @@ object JSON {
     val carriageReturn = char('\r')
     val horizontalTab = char('\t')
 
-    (space | linefeed | carriageReturn | horizontalTab).many
+    (space | linefeed | carriageReturn | horizontalTab).many.map(_ => ())
   }
 
   def jStringParser[Parser[+_]](P: Parsers[Parser]): Parser[JString] = {
     import P._
 
     val quote = char('"')
-    val chars = regex("\\w".r).many
+    val chars = regex("\\w*".r)
 
     // Simplified version, doesn't support control characters
     (quote >> chars << quote).map(JString)
@@ -77,7 +77,7 @@ object JSON {
     val ws = whitespaceParser(P)
     val jValue = jValueParser(P)
 
-    val jValues = (ws >> comma >> jValue).manyL
+    val jValues = (ws >> comma >> jValue).many
     val values = (ws >> (jValue ++ jValues).map(_.toIndexedSeq).map(JArray).opt)
       .map(_.getOrElse(JArray(Vector.empty)))
 
@@ -110,7 +110,7 @@ object JSON {
     val ws = whitespaceParser(P)
     val jField = jFieldParser(P)
 
-    val body = ws >> jField.manyL.opt.map(
+    val body = ws >> jField.many.opt.map(
       _.map(fields => JObject(fields.toMap)).getOrElse(JObject(Map.empty))
     )
 
