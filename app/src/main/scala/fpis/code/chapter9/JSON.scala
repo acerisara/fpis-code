@@ -103,21 +103,16 @@ object JSON {
 
     // WIP, grammar at https://www.json.org/json-en.html
 
+    val open = char('{')
+    val close = char('}')
+
     val ws = whitespaceParser(P)
+    val jField = jFieldParser(P)
 
-    def jObject: Parser[JSON] = {
-      val open = char('{')
-      val close = char('}')
+    val body = ws >> jField.manyL.opt.map(
+      _.map(fields => JObject(fields.toMap)).getOrElse(JObject(Map.empty))
+    )
 
-      val jField = jFieldParser(P)
-
-      val body = (ws.map(_ => List()) | (ws >> jField.manyL)).map { v =>
-        JObject(v.toMap)
-      }
-
-      open >> body << close
-    }
-
-    jObject
+    open >> body << close
   }
 }

@@ -148,7 +148,7 @@ class MyParserTest extends AnyFunSuite {
         |""".stripMargin) should be(Right("a" -> JString("abc")))
   }
 
-  test("Empty object") {
+  test("jObject parser") {
     val jObject = JSON.jsonParser(myParser)
 
     myParser.run(jObject)("{}") should be(Right(JObject(Map.empty)))
@@ -157,6 +157,28 @@ class MyParserTest extends AnyFunSuite {
     myParser.run(jObject)("""{
         |
         |}""".stripMargin) should be(Right(JObject(Map.empty)))
+
+    myParser.run(jObject)("""{
+        |  "a": 1
+        |}""".stripMargin) should be(Right(JObject(Map("a" -> JNumber(1)))))
+
+    myParser.run(jObject)("""{
+        |  "a": 1,
+        |  "b": "abc",
+        |  "c": true,
+        |  "d": null
+        |}""".stripMargin) should be(
+      Right(
+        JObject(
+          Map(
+            "a" -> JNumber(1),
+            "b" -> JString("abc"),
+            "c" -> JBool(true),
+            "d" -> JNull
+          )
+        )
+      )
+    )
   }
 
 }
