@@ -1,5 +1,8 @@
 package fpis.code.chapter10
 
+import fpis.code.chapter8.Prop.forAll
+import fpis.code.chapter8.{Gen, Prop}
+
 trait Monoid[A] {
 
   def op(a1: A, a2: A): A
@@ -44,5 +47,23 @@ object Monoid {
     override def op(a1: Option[A], a2: Option[A]): Option[A] = a1.orElse(a2)
     override def zero: Option[A] = None
   }
+
+  def endoMonoid[A]: Monoid[A => A] = new Monoid[A => A] {
+    override def op(a1: A => A, a2: A => A): A => A = a1.andThen(a2)
+    override def zero: A => A = a => a
+  }
+
+  def monoidLaws[A](m: Monoid[A], gen: Gen[A]): Prop = forAll(for {
+    x <- gen
+    y <- gen
+    z <- gen
+  } yield (x, y, z))(p => {
+    // Associativity
+    m.op(p._1, m.op(p._2, p._3)) == m.op(m.op(p._1, p._2), p._3) &&
+      // Identity
+      m.op(p._1, m.zero) == p._1 &&
+      m.op(p._2, m.zero) == p._2 &&
+      m.op(p._3, m.zero) == p._3
+  })
 
 }
