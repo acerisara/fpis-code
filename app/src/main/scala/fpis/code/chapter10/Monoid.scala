@@ -1,5 +1,7 @@
 package fpis.code.chapter10
 
+import fpis.code.chapter7.Par
+import fpis.code.chapter7.Par.{Par, asyncF, lazyUnit}
 import fpis.code.chapter8.Prop.forAll
 import fpis.code.chapter8.{Gen, Prop}
 
@@ -68,6 +70,16 @@ object Monoid {
     }
   }
 
+  def par[A](m: Monoid[A]): Monoid[Par[A]] = new Monoid[Par[A]] {
+    override def op(pa1: Par[A], pa2: Par[A]): Par[A] = Par.map2(pa1, pa2) {
+      (a1, a2) => m.op(a1, a2)
+    }
+    override def zero: Par[A] = Par.unit(m.zero)
+  }
+
+  def parFoldMap[A, B](v: IndexedSeq[A], m: Monoid[B])(f: A => B): Par[B] =
+    foldMapV(v, par(m))(a => lazyUnit(f(a)))
+
   def monoidLaws[A](m: Monoid[A], gen: Gen[A]): Prop = forAll(for {
     x <- gen
     y <- gen
@@ -75,10 +87,10 @@ object Monoid {
   } yield (x, y, z))(p => {
     // Associativity
     m.op(p._1, m.op(p._2, p._3)) == m.op(m.op(p._1, p._2), p._3) &&
-      // Identity
-      m.op(p._1, m.zero) == p._1 &&
-      m.op(p._2, m.zero) == p._2 &&
-      m.op(p._3, m.zero) == p._3
+    // Identity
+    m.op(p._1, m.zero) == p._1 &&
+    m.op(p._2, m.zero) == p._2 &&
+    m.op(p._3, m.zero) == p._3
   })
 
 }

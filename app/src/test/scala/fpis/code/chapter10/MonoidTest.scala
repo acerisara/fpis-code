@@ -5,7 +5,8 @@ import fpis.code.chapter10.Monoid.{
   foldMap,
   foldMapV,
   intAdditionMonoid,
-  monoidLaws
+  monoidLaws,
+  parFoldMap
 }
 import fpis.code.chapter6.{RNG, SimpleRNG}
 import fpis.code.chapter8.{Gen, Passed, Prop, Result}
@@ -16,8 +17,12 @@ import org.scalatestplus.junit.JUnitRunner
 import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 
+import java.util.concurrent.{ExecutorService, Executors}
+
 @RunWith(classOf[JUnitRunner])
 class MonoidTest extends AnyFunSuite {
+
+  val es: ExecutorService = Executors.newFixedThreadPool(5)
 
   test("Int addition monoid") {
     val gen = Gen.choose(0, 100)
@@ -37,6 +42,9 @@ class MonoidTest extends AnyFunSuite {
 
     foldMap(s, intAdditionMonoid)(_.toInt) should be(15)
     foldMapV(s.toIndexedSeq, intAdditionMonoid)(_.toInt) should be(15)
+
+    val p = parFoldMap(s.toIndexedSeq, intAdditionMonoid)(_.toInt)
+    p(es).get should be(15)
   }
 
   private def run(
