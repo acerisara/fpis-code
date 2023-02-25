@@ -80,6 +80,33 @@ object Monoid {
   def parFoldMap[A, B](v: IndexedSeq[A], m: Monoid[B])(f: A => B): Par[B] =
     foldMapV(v, par(m))(a => lazyUnit(f(a)))
 
+  def isOrdered(v: IndexedSeq[Int]): Boolean = {
+    case class Interval(ordered: Boolean, min: Int, max: Int)
+
+    val orderedMonoid = new Monoid[Option[Interval]] {
+      override def op(
+          oa1: Option[Interval],
+          oa2: Option[Interval]
+      ): Option[Interval] = (oa1, oa2) match {
+        case (Some(a1), Some(a2)) =>
+          Some(
+            Interval(
+              a1.ordered && a2.ordered && a1.max <= a2.min,
+              a1.min,
+              a2.max
+            )
+          )
+        case (x, None) => x
+        case (None, x) => x
+      }
+
+      override def zero: Option[Interval] = None
+    }
+
+    foldMapV(v, orderedMonoid)(i => Some(Interval(ordered = true, i, i)))
+      .forall(_.ordered)
+  }
+
   def monoidLaws[A](m: Monoid[A], gen: Gen[A]): Prop = forAll(for {
     x <- gen
     y <- gen
@@ -87,10 +114,10 @@ object Monoid {
   } yield (x, y, z))(p => {
     // Associativity
     m.op(p._1, m.op(p._2, p._3)) == m.op(m.op(p._1, p._2), p._3) &&
-    // Identity
-    m.op(p._1, m.zero) == p._1 &&
-    m.op(p._2, m.zero) == p._2 &&
-    m.op(p._3, m.zero) == p._3
+      // Identity
+      m.op(p._1, m.zero) == p._1 &&
+      m.op(p._2, m.zero) == p._2 &&
+      m.op(p._3, m.zero) == p._3
   })
 
 }

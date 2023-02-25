@@ -5,6 +5,7 @@ import fpis.code.chapter10.Monoid.{
   foldMap,
   foldMapV,
   intAdditionMonoid,
+  isOrdered,
   monoidLaws,
   parFoldMap
 }
@@ -37,7 +38,7 @@ class MonoidTest extends AnyFunSuite {
     concatenate(ints, intAdditionMonoid) should be(15)
   }
 
-  test("Monoid.foldMap") {
+  test("Monoid.foldMap (and variants)") {
     val s = List("1", "2", "3", "4", "5")
 
     foldMap(s, intAdditionMonoid)(_.toInt) should be(15)
@@ -45,6 +46,14 @@ class MonoidTest extends AnyFunSuite {
 
     val p = parFoldMap(s.toIndexedSeq, intAdditionMonoid)(_.toInt)
     p(es).get should be(15)
+  }
+
+  test("Monoid.isOrdered") {
+    isOrdered(IndexedSeq(1, 2, 3, 4, 5)) should be(true)
+    isOrdered(IndexedSeq(1, 2, 3, 5, 4)) should be(false)
+    isOrdered(IndexedSeq(2, 1, 3, 4, 5)) should be(false)
+    isOrdered(IndexedSeq(1, 2, 5, 4, 3)) should be(false)
+    isOrdered(IndexedSeq(5, 4, 3, 2, 1)) should be(false)
   }
 
   private def run(
