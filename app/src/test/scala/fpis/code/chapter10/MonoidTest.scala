@@ -1,6 +1,12 @@
 package fpis.code.chapter10
 
-import fpis.code.chapter10.Monoid.{intAdditionMonoid, monoidLaws}
+import fpis.code.chapter10.Monoid.{
+  concatenate,
+  foldMap,
+  foldMapV,
+  intAdditionMonoid,
+  monoidLaws
+}
 import fpis.code.chapter6.{RNG, SimpleRNG}
 import fpis.code.chapter8.{Gen, Passed, Prop, Result}
 import fpis.code.chapter8.Prop.{MaxSize, TestCases}
@@ -18,6 +24,19 @@ class MonoidTest extends AnyFunSuite {
     val p = monoidLaws(intAdditionMonoid, gen)
 
     run(p) should be(Passed)
+  }
+
+  test("Monoid.concatenate") {
+    val ints = List(1, 2, 3, 4, 5)
+
+    concatenate(ints, intAdditionMonoid) should be(15)
+  }
+
+  test("Monoid.foldMap") {
+    val s = List("1", "2", "3", "4", "5")
+
+    foldMap(s, intAdditionMonoid)(_.toInt) should be(15)
+    foldMapV(s.toIndexedSeq, intAdditionMonoid)(_.toInt) should be(15)
   }
 
   private def run(

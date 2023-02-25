@@ -53,6 +53,21 @@ object Monoid {
     override def zero: A => A = a => a
   }
 
+  def concatenate[A](as: List[A], m: Monoid[A]): A =
+    as.foldLeft(m.zero)(m.op)
+
+  def foldMap[A, B](as: List[A], m: Monoid[B])(f: A => B): B =
+    as.map(f).foldLeft(m.zero)(m.op)
+
+  def foldMapV[A, B](v: IndexedSeq[A], m: Monoid[B])(f: A => B): B = {
+    if (v.isEmpty) m.zero
+    else if (v.length <= 1) f(v.head)
+    else {
+      val (subL, subR) = v.splitAt(v.length / 2)
+      m.op(foldMapV(subL, m)(f), foldMapV(subR, m)(f))
+    }
+  }
+
   def monoidLaws[A](m: Monoid[A], gen: Gen[A]): Prop = forAll(for {
     x <- gen
     y <- gen
