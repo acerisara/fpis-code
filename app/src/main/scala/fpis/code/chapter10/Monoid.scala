@@ -114,10 +114,10 @@ object Monoid {
   } yield (x, y, z))(p => {
     // Associativity
     m.op(p._1, m.op(p._2, p._3)) == m.op(m.op(p._1, p._2), p._3) &&
-      // Identity
-      m.op(p._1, m.zero) == p._1 &&
-      m.op(p._2, m.zero) == p._2 &&
-      m.op(p._3, m.zero) == p._3
+    // Identity
+    m.op(p._1, m.zero) == p._1 &&
+    m.op(p._2, m.zero) == p._2 &&
+    m.op(p._3, m.zero) == p._3
   })
 
 }
