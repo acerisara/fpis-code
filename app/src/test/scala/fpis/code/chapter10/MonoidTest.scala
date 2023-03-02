@@ -50,6 +50,8 @@ class MonoidTest extends AnyFunSuite {
 
   test("Monoid.isOrdered") {
     isOrdered(IndexedSeq(1, 2, 3, 4, 5)) should be(true)
+    isOrdered(IndexedSeq(1, 1, 3, 4, 5)) should be(true)
+    isOrdered(IndexedSeq(5, 5, 5, 5, 5)) should be(true)
     isOrdered(IndexedSeq(1, 2, 3, 5, 4)) should be(false)
     isOrdered(IndexedSeq(2, 1, 3, 4, 5)) should be(false)
     isOrdered(IndexedSeq(1, 2, 5, 4, 3)) should be(false)
