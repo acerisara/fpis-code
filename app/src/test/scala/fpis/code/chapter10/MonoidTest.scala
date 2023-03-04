@@ -1,22 +1,14 @@
 package fpis.code.chapter10
 
-import fpis.code.chapter10.Monoid.{
-  concatenate,
-  foldMap,
-  foldMapV,
-  intAdditionMonoid,
-  isOrdered,
-  monoidLaws,
-  parFoldMap
-}
+import fpis.code.chapter10.Monoid._
 import fpis.code.chapter6.{RNG, SimpleRNG}
-import fpis.code.chapter8.{Gen, Passed, Prop, Result}
 import fpis.code.chapter8.Prop.{MaxSize, TestCases}
+import fpis.code.chapter8.{Gen, Passed, Prop, Result}
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalatestplus.junit.JUnitRunner
 import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatestplus.junit.JUnitRunner
 
 import java.util.concurrent.{ExecutorService, Executors}
 
@@ -56,6 +48,28 @@ class MonoidTest extends AnyFunSuite {
     isOrdered(IndexedSeq(2, 1, 3, 4, 5)) should be(false)
     isOrdered(IndexedSeq(1, 2, 5, 4, 3)) should be(false)
     isOrdered(IndexedSeq(5, 4, 3, 2, 1)) should be(false)
+  }
+
+  test("Product monoid") {
+    val gen = Gen.choose(0, 100)
+
+    val p = productMonoidLaws(
+      productMonoid(intAdditionMonoid, intMultiplicationMonoid),
+      gen ** gen
+    )
+
+    run(p) should be(Passed)
+  }
+
+  test("Monoid.bag") {
+    val expected = Map(
+      "a" -> 2,
+      "is" -> 1,
+      "rose" -> 2
+    )
+
+    bag(Vector("a", "rose", "is", "a", "rose")) should be(expected)
+    bagM(Vector("a", "rose", "is", "a", "rose")) should be(expected)
   }
 
   private def run(

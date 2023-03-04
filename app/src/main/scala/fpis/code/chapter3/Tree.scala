@@ -11,7 +11,7 @@ case class Branch[+A](left: Tree[A], right: Tree[A]) extends Tree[A]
 object Tree {
 
   def toList[A](t: Tree[A]): SList[A] = t match {
-    case Leaf(a) => SList(a)
+    case Leaf(a)      => SList(a)
     case Branch(l, r) => toList(l) ++ toList(r)
   }
 

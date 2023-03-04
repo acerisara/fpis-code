@@ -54,7 +54,9 @@ class TreeTest extends AnyFunSuite {
   }
 
   test("Tree.toList") {
-    Tree.toList(Branch(Branch(Leaf(1), Leaf(2)), Leaf(3))) should be(SList(1, 2, 3))
+    Tree.toList(Branch(Branch(Leaf(1), Leaf(2)), Leaf(3))) should be(
+      SList(1, 2, 3)
+    )
   }
 
 }

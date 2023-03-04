@@ -1,7 +1,7 @@
 package fpis.code.chapter10
 
 import fpis.code.chapter7.Par
-import fpis.code.chapter7.Par.{Par, asyncF, lazyUnit}
+import fpis.code.chapter7.Par.{Par, lazyUnit}
 import fpis.code.chapter8.Prop.forAll
 import fpis.code.chapter8.{Gen, Prop}
 
@@ -51,9 +51,16 @@ object Monoid {
   }
 
   def endoMonoid[A]: Monoid[A => A] = new Monoid[A => A] {
-    override def op(a1: A => A, a2: A => A): A => A = a1.andThen(a2)
+    override def op(f: A => A, g: A => A): A => A = f.andThen(g)
     override def zero: A => A = a => a
   }
+
+  def functionMonoid[A, B](b: Monoid[B]): Monoid[A => B] =
+    new Monoid[A => B] {
+      override def op(f: A => B, g: A => B): A => B = a => b.op(f(a), g(a))
+
+      override def zero: A => B = _ => b.zero
+    }
 
   def concatenate[A](as: List[A], m: Monoid[A]): A =
     as.foldLeft(m.zero)(m.op)
@@ -107,6 +114,30 @@ object Monoid {
       .forall(_.ordered)
   }
 
+  def productMonoid[A, B](a: Monoid[A], b: Monoid[B]): Monoid[(A, B)] =
+    new Monoid[(A, B)] {
+      override def op(a1: (A, B), a2: (A, B)): (A, B) =
+        (a.op(a1._1, a2._1), b.op(a1._2, a2._2))
+
+      override def zero: (A, B) = (a.zero, b.zero)
+    }
+
+  def mapMergeMonoid[K, V](V: Monoid[V]): Monoid[Map[K, V]] =
+    new Monoid[Map[K, V]] {
+      def zero: Map[K, V] = Map[K, V]()
+
+      def op(a: Map[K, V], b: Map[K, V]): Map[K, V] =
+        (a.keySet ++ b.keySet).foldLeft(zero) { (acc, k) =>
+          acc.updated(k, V.op(a.getOrElse(k, V.zero), b.getOrElse(k, V.zero)))
+        }
+    }
+
+  def bag[A](as: IndexedSeq[A]): Map[A, Int] =
+    foldMapV(as, listMonoid[(A, Int)])(a => List((a, as.count(_ == a)))).toMap
+
+  def bagM[A](as: IndexedSeq[A]): Map[A, Int] =
+    foldMapV(as, mapMergeMonoid[A, Int](intAdditionMonoid))(a => Map(a -> 1))
+
   def monoidLaws[A](m: Monoid[A], gen: Gen[A]): Prop = forAll(for {
     x <- gen
     y <- gen
@@ -119,5 +150,20 @@ object Monoid {
     m.op(p._2, m.zero) == p._2 &&
     m.op(p._3, m.zero) == p._3
   })
+
+  // TODO: Abstract this
+  def productMonoidLaws[A, B](m: Monoid[(A, B)], g: Gen[(A, B)]): Prop =
+    forAll(for {
+      ab1 <- g
+      ab2 <- g
+      ab3 <- g
+    } yield (ab1, ab2, ab3))(p => {
+      // Associativity
+      m.op(p._1, m.op(p._2, p._3)) == m.op(m.op(p._1, p._2), p._3) &&
+      // Identity
+      m.op(p._1, m.zero) == p._1 &&
+      m.op(p._2, m.zero) == p._2 &&
+      m.op(p._3, m.zero) == p._3
+    })
 
 }

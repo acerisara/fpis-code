@@ -1,4 +1,3 @@
-
 package fpis.code.chapter10
 
 import fpis.code.chapter3.{Branch, Leaf, Tree}
@@ -55,13 +54,13 @@ object Foldable {
   val foldableTree: Foldable[Tree] = new Foldable[Tree] {
     override def foldRight[A, B](as: Tree[A])(acc: B)(f: (A, B) => B): B =
       as match {
-        case Leaf(a) => f(a, acc)
+        case Leaf(a)      => f(a, acc)
         case Branch(l, r) => foldRight(l)(foldRight(r)(acc)(f))(f)
       }
 
     override def foldLeft[A, B](as: Tree[A])(acc: B)(f: (B, A) => B): B =
       as match {
-        case Leaf(a) => f(acc, a)
+        case Leaf(a)      => f(acc, a)
         case Branch(l, r) => foldLeft(r)(foldLeft(l)(acc)(f))(f)
       }
 
@@ -74,24 +73,24 @@ object Foldable {
   val foldableOption: Foldable[Option] = new Foldable[Option] {
     override def foldRight[A, B](as: Option[A])(acc: B)(f: (A, B) => B): B =
       as match {
-        case None => acc
+        case None    => acc
         case Some(a) => f(a, acc)
       }
 
     override def foldLeft[A, B](as: Option[A])(acc: B)(f: (B, A) => B): B =
       as match {
-        case None => acc
+        case None    => acc
         case Some(a) => f(acc, a)
       }
 
     override def foldMap[A, B](as: Option[A])(f: A => B)(m: Monoid[B]): B =
       as match {
-        case None => m.zero
+        case None    => m.zero
         case Some(a) => f(a)
       }
 
     override def toList[A](as: Option[A]): List[A] = as match {
-      case None => List.empty
+      case None    => List.empty
       case Some(a) => List(a)
     }
   }
