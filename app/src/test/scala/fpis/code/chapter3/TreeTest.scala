@@ -6,6 +6,8 @@ import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.junit.JUnitRunner
 
+import scala.{List => SList}
+
 @RunWith(classOf[JUnitRunner])
 class TreeTest extends AnyFunSuite {
 
@@ -49,6 +51,10 @@ class TreeTest extends AnyFunSuite {
     Tree.mapF(Branch(Leaf(1), Leaf(2)))(_.toString) should be(
       Branch(Leaf("1"), Leaf("2"))
     )
+  }
+
+  test("Tree.toList") {
+    Tree.toList(Branch(Branch(Leaf(1), Leaf(2)), Leaf(3))) should be(SList(1, 2, 3))
   }
 
 }

@@ -1,5 +1,7 @@
 package fpis.code.chapter3
 
+import scala.{List => SList}
+
 sealed trait Tree[+A]
 
 case class Leaf[+A](value: A) extends Tree[A]
@@ -7,6 +9,11 @@ case class Leaf[+A](value: A) extends Tree[A]
 case class Branch[+A](left: Tree[A], right: Tree[A]) extends Tree[A]
 
 object Tree {
+
+  def toList[A](t: Tree[A]): SList[A] = t match {
+    case Leaf(a) => SList(a)
+    case Branch(l, r) => toList(l) ++ toList(r)
+  }
 
   def size[A](t: Tree[A]): Int =
     t match {
