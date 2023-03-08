@@ -16,6 +16,16 @@ trait Monad[F[_]] extends Functor[F] {
   def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
     flatMap(fa)(a => map(fb)(b => f(a, b)))
 
+  def sequence[A](lfa: List[F[A]]): F[List[A]] =
+    lfa.foldLeft(unit(List.empty[A])) { (b, a) =>
+      map2(b, a)(_ :+ _)
+    }
+
+  def traverse[A, B](la: List[A])(f: A => F[B]): F[List[B]] =
+    la.foldLeft(unit(List.empty[B])) { (b, a) =>
+      map2(b, f(a))(_ :+ _)
+    }
+
 }
 
 object Monad {
