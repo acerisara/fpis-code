@@ -44,4 +44,14 @@ class MonadTest extends AnyFunSuite {
     om.filterM(List(1, 6, 3))(n) should be(None)
   }
 
+  test("Monad.compose") {
+    val f = (i: Int) => if (i > 0) Some(i.toString) else Some("")
+    val g = (s: String) => if (s.nonEmpty) Some(true) else Some(false)
+
+    val h = om.compose(f, g)
+
+    h(1) should be(Some(true))
+    h(0) should be(Some(false))
+  }
+
 }

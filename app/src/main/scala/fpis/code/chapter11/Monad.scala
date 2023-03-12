@@ -7,6 +7,10 @@ import fpis.code.chapter9.MyParser.Parser
 import fpis.code.chapter9.Parsers
 
 trait Monad[F[_]] extends Functor[F] {
+  // Minimal sets of combinators:
+  // 1. flatMap, unit
+  // 2. compose, unit
+
   def unit[A](a: => A): F[A]
   def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
 
@@ -36,6 +40,12 @@ trait Monad[F[_]] extends Functor[F] {
         if (include) as :+ a else as
       }
     }
+
+  def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] = a =>
+    flatMap(f(a))(g)
+
+  def flatMapC[A, B](ma: F[A])(f: A => F[B]): F[B] =
+    compose((_: Unit) => ma, f)(())
 
 }
 
