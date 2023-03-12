@@ -30,6 +30,13 @@ trait Monad[F[_]] extends Functor[F] {
 
   def product[A, B](ma: F[A], mb: F[B]): F[(A, B)] = map2(ma, mb)((_, _))
 
+  def filterM[A](la: List[A])(f: A => F[Boolean]): F[List[A]] =
+    la.foldLeft(unit(List.empty[A])) { (b, a) =>
+      map2(b, f(a)) { (as, include) =>
+        if (include) as :+ a else as
+      }
+    }
+
 }
 
 object Monad {
