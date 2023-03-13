@@ -1,7 +1,7 @@
 package fpis.code.chapter10
 
-import fpis.code.chapter11.Monad
 import fpis.code.chapter11.Monad.optionMonad
+import fpis.code.chapter11.{Id, Monad}
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be
@@ -52,6 +52,16 @@ class MonadTest extends AnyFunSuite {
 
     h(1) should be(Some(true))
     h(0) should be(Some(false))
+  }
+
+  test("Id monad") {
+    // The behaviour of the id monad is just variable substitution
+    val m = for {
+      a <- Id("Hello, ")
+      b <- Id("monad!")
+    } yield a + b
+
+    m should be(Id("Hello, monad!"))
   }
 
 }

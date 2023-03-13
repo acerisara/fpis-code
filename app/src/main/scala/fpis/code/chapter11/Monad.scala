@@ -10,6 +10,7 @@ trait Monad[F[_]] extends Functor[F] {
   // Minimal sets of combinators:
   // 1. flatMap, unit
   // 2. compose, unit
+  // 3. map, unit and join
 
   def unit[A](a: => A): F[A]
   def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
@@ -47,6 +48,10 @@ trait Monad[F[_]] extends Functor[F] {
   def flatMapC[A, B](ma: F[A])(f: A => F[B]): F[B] =
     compose((_: Unit) => ma, f)(())
 
+  def joinF[A](mma: F[F[A]]): F[A] = flatMap(mma)(identity)
+
+  def flatMapJ[A, B](ma: F[A])(f: A => F[B]): F[B] = joinF(map(ma)(f))
+
 }
 
 object Monad {
@@ -80,4 +85,14 @@ object Monad {
       fa.flatMap(f)
   }
 
+  val idMonad: Monad[Id] = new Monad[Id] {
+    override def unit[A](a: => A): Id[A] = Id(a)
+    override def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = fa.flatMap(f)
+  }
+
+}
+
+case class Id[A](value: A) {
+  def map[B](f: A => B): Id[B] = Id(f(value))
+  def flatMap[B](f: A => Id[B]): Id[B] = f(value)
 }
