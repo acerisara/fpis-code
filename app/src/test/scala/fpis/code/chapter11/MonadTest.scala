@@ -1,7 +1,6 @@
-package fpis.code.chapter10
+package fpis.code.chapter11
 
 import fpis.code.chapter11.Monad.optionMonad
-import fpis.code.chapter11.{Id, Monad}
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be
