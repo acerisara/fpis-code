@@ -1,6 +1,7 @@
 package fpis.code.chapter11
 
-import fpis.code.chapter11.Monad.optionMonad
+import fpis.code.chapter11.Monad.{optionMonad, stateMonad}
+import fpis.code.chapter6.{RNG, Rand, SimpleRNG}
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be
@@ -11,6 +12,9 @@ import org.scalatestplus.junit.JUnitRunner
 class MonadTest extends AnyFunSuite {
 
   val om: Monad[Option] = optionMonad
+
+  val seed = 123456789
+  val rng: SimpleRNG = SimpleRNG(seed)
 
   test("Monad.sequence") {
     om.sequence(List(Some(1), Some(2), Some(3))) should be(Some(List(1, 2, 3)))
@@ -61,6 +65,51 @@ class MonadTest extends AnyFunSuite {
     } yield a + b
 
     m should be(Id("Hello, monad!"))
+  }
+
+  test("State monad replicateM") {
+    // replicateM runs the state n times and returns
+    // the list of produced values plus the final state
+    val m = stateMonad[RNG]
+
+    val a1 = Rand.int.run(rng)
+    val a2 = Rand.int.run(a1._2)
+    val a3 = Rand.int.run(a2._2)
+
+    val (ints, finalState) = m.replicateM(3, Rand.int).run(rng)
+
+    ints should be(List(a1._1, a2._1, a3._1))
+    finalState should be(a3._2)
+  }
+
+  test("State monad map2") {
+    // map2 runs the two states and returns
+    // the combined value plus the state of the second invocation
+    val m = stateMonad[RNG]
+
+    val a1 = Rand.int.run(rng)
+    val a2 = Rand.int.run(a1._2)
+
+    val (ints, finalState) = m.map2(Rand.int, Rand.int)(_ + _).run(rng)
+
+    ints should be(a1._1 + a2._1)
+    finalState should be(a2._2)
+  }
+
+  test("State monad sequence") {
+    // sequence runs each state in the list
+    // and returns the list of produced values plus the final state
+    val m = stateMonad[RNG]
+
+    val a1 = Rand.int.run(rng)
+    val a2 = Rand.int.run(a1._2)
+    val a3 = Rand.int.run(a2._2)
+
+    val (ints, finalState) =
+      m.sequence(List(Rand.int, Rand.int, Rand.int)).run(rng)
+
+    ints should be(List(a1._1, a2._1, a3._1))
+    finalState should be(a3._2)
   }
 
 }

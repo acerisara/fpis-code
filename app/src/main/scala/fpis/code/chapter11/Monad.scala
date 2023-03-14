@@ -1,5 +1,6 @@
 package fpis.code.chapter11
 
+import fpis.code.chapter6.State
 import fpis.code.chapter7.Par
 import fpis.code.chapter7.Par.Par
 import fpis.code.chapter8.Gen
@@ -88,6 +89,16 @@ object Monad {
   val idMonad: Monad[Id] = new Monad[Id] {
     override def unit[A](a: => A): Id[A] = Id(a)
     override def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = fa.flatMap(f)
+  }
+
+  def stateMonad[S]: Monad[
+    ({
+      type f[x] = State[S, x]
+    })#f
+  ] = new Monad[({ type f[x] = State[S, x] })#f] {
+    def unit[A](a: => A): State[S, A] = State(s => (a, s))
+    def flatMap[A, B](st: State[S, A])(f: A => State[S, B]): State[S, B] =
+      st.flatMap(f)
   }
 
 }
