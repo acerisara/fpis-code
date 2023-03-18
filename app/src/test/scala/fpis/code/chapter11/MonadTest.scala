@@ -1,6 +1,6 @@
 package fpis.code.chapter11
 
-import fpis.code.chapter11.Monad.{optionMonad, stateMonad}
+import fpis.code.chapter11.Monad.{optionMonad, stateMonad, zipWithIndex}
 import fpis.code.chapter6.{RNG, Rand, SimpleRNG}
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
@@ -110,6 +110,16 @@ class MonadTest extends AnyFunSuite {
 
     ints should be(List(a1._1, a2._1, a3._1))
     finalState should be(a3._2)
+  }
+
+  test("Zip with index") {
+    zipWithIndex(List("a", "b", "c")) should be(
+      List(
+        (0, "a"),
+        (1, "b"),
+        (2, "c")
+      )
+    )
   }
 
 }

@@ -101,6 +101,23 @@ object Monad {
       st.flatMap(f)
   }
 
+  val F: Monad[
+    ({
+      type f[x] = State[Int, x]
+    })#f
+  ] = stateMonad[Int]
+
+  def zipWithIndex[A](as: List[A]): List[(Int, A)] =
+    as.foldLeft(F.unit(List[(Int, A)]()))((acc, a) =>
+      for {
+        xs <- acc
+        n <- State.get[Int]
+        _ <- State.set(n + 1)
+      } yield (n, a) :: xs
+    ).run(0)
+      ._1
+      .reverse
+
 }
 
 case class Id[A](value: A) {
