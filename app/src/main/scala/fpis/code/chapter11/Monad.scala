@@ -1,5 +1,6 @@
 package fpis.code.chapter11
 
+import fpis.code.chapter12.Applicative
 import fpis.code.chapter6.State
 import fpis.code.chapter7.Par
 import fpis.code.chapter7.Par.Par
@@ -7,51 +8,27 @@ import fpis.code.chapter8.Gen
 import fpis.code.chapter9.MyParser.Parser
 import fpis.code.chapter9.Parsers
 
-trait Monad[F[_]] extends Functor[F] {
+trait Monad[F[_]] extends Applicative[F] {
   // Minimal sets of combinators:
   // 1. flatMap, unit
   // 2. compose, unit
   // 3. map, unit and join
 
-  def unit[A](a: => A): F[A]
-  def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
+  // A minimal implementation of Monad must implement unit
+  // and override either flatMap or join and map
+
+  def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B] = join(map(fa)(f))
+
+  def join[A](ffa: F[F[A]]): F[A] = flatMap(ffa)(fa => fa)
 
   override def map[A, B](ma: F[A])(f: A => B): F[B] =
     flatMap(ma)(a => unit(f(a)))
 
-  def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
+  override def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
     flatMap(fa)(a => map(fb)(b => f(a, b)))
-
-  def sequence[A](lfa: List[F[A]]): F[List[A]] =
-    lfa.foldLeft(unit(List.empty[A])) { (b, a) =>
-      map2(b, a)(_ :+ _)
-    }
-
-  def traverse[A, B](la: List[A])(f: A => F[B]): F[List[B]] =
-    la.foldLeft(unit(List.empty[B])) { (b, a) =>
-      map2(b, f(a))(_ :+ _)
-    }
-
-  def replicateM[A](n: Int, ma: F[A]): F[List[A]] = sequence(List.fill(n)(ma))
-
-  def product[A, B](ma: F[A], mb: F[B]): F[(A, B)] = map2(ma, mb)((_, _))
-
-  def filterM[A](la: List[A])(f: A => F[Boolean]): F[List[A]] =
-    la.foldLeft(unit(List.empty[A])) { (b, a) =>
-      map2(b, f(a)) { (as, include) =>
-        if (include) as :+ a else as
-      }
-    }
 
   def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] = a =>
     flatMap(f(a))(g)
-
-  def flatMapC[A, B](ma: F[A])(f: A => F[B]): F[B] =
-    compose((_: Unit) => ma, f)(())
-
-  def joinF[A](mma: F[F[A]]): F[A] = flatMap(mma)(identity)
-
-  def flatMapJ[A, B](ma: F[A])(f: A => F[B]): F[B] = joinF(map(ma)(f))
 
 }
 
@@ -59,7 +36,8 @@ object Monad {
 
   val genMonad: Monad[Gen] = new Monad[Gen] {
     def unit[A](a: => A): Gen[A] = Gen.unit(a)
-    def flatMap[A, B](fa: Gen[A])(f: A => Gen[B]): Gen[B] = fa.flatMap(f)
+    override def flatMap[A, B](fa: Gen[A])(f: A => Gen[B]): Gen[B] =
+      fa.flatMap(f)
   }
 
   val parMonad: Monad[Par] = new Monad[Par] {
@@ -96,8 +74,10 @@ object Monad {
       type f[x] = State[S, x]
     })#f
   ] = new Monad[({ type f[x] = State[S, x] })#f] {
-    def unit[A](a: => A): State[S, A] = State(s => (a, s))
-    def flatMap[A, B](st: State[S, A])(f: A => State[S, B]): State[S, B] =
+    override def unit[A](a: => A): State[S, A] = State(s => (a, s))
+    override def flatMap[A, B](st: State[S, A])(
+        f: A => State[S, B]
+    ): State[S, B] =
       st.flatMap(f)
   }
 

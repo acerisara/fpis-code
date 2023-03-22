@@ -39,7 +39,7 @@ class ReaderTest extends AnyFunSuite {
 
   test("Reader monad join") {
     val s =
-      rm.joinF(Reader((r1: Int) => Reader((r2: Int) => (r1 + r2).toString)))
+      rm.join(Reader((r1: Int) => Reader((r2: Int) => (r1 + r2).toString)))
 
     s.run(10) should be("20")
   }
