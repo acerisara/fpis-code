@@ -22,18 +22,18 @@ trait Applicative[F[_]] extends Functor[F] {
   override def map[A, B](fa: F[A])(f: A => B): F[B] =
     map2(fa, unit(()))((a, _) => f(a))
 
-  def sequence[A](lfa: List[F[A]]): F[List[A]] = traverse(lfa)(fa => fa)
+  def sequence[A](fas: List[F[A]]): F[List[A]] = traverse(fas)(fa => fa)
 
   def traverse[A, B](as: List[A])(f: A => F[B]): F[List[B]] =
     as.foldRight(unit(List[B]()))((a, fbs) => map2(f(a), fbs)(_ :: _))
 
-  def replicateM[A](n: Int, ma: F[A]): F[List[A]] = sequence(List.fill(n)(ma))
+  def replicateM[A](n: Int, fa: F[A]): F[List[A]] = sequence(List.fill(n)(fa))
 
-  def product[A, B](ma: F[A], mb: F[B]): F[(A, B)] = map2(ma, mb)((_, _))
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] = map2(fa, fb)((_, _))
 
-  def filterM[A](la: List[A])(f: A => F[Boolean]): F[List[A]] =
-    la.foldLeft(unit(List.empty[A]))((fbs, a) =>
-      map2(fbs, f(a))((as, include) => if (include) as :+ a else as)
+  def filterM[A](as: List[A])(f: A => F[Boolean]): F[List[A]] =
+    as.foldLeft(unit(List.empty[A]))((fas, a) =>
+      map2(fas, f(a))((as, add) => if (add) as :+ a else as)
     )
 
   def map3[A, B, C, D](fa: F[A], fb: F[B], fc: F[C])(f: (A, B, C) => D): F[D] =
