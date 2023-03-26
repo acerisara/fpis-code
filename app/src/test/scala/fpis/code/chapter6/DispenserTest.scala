@@ -30,7 +30,7 @@ class DispenserTest extends AnyFunSuite {
     result should be((14, 1), Dispenser(locked = true, candies = 1, coins = 14))
   }
 
-  test("turn on a locked dispenser") {
+  test("turn the knob on a locked dispenser") {
     val s = simulateDispenser(List(Turn))
 
     val result =
