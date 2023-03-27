@@ -44,3 +44,37 @@ trait Applicative[F[_]] extends Functor[F] {
   ): F[E] = apply(apply(apply(apply(unit(f.curried))(fa))(fb))(fc))(fd)
 
 }
+
+object Applicative {
+
+  def product[F[_], G[_]](
+      F: Applicative[F],
+      G: Applicative[G]
+  ): Applicative[({ type f[x] = (F[x], G[x]) })#f] = new Applicative[
+    ({
+      type f[x] = (F[x], G[x])
+    })#f
+  ] {
+    override def map2[A, B, C](fa: (F[A], G[A]), fb: (F[B], G[B]))(
+        f: (A, B) => C
+    ): (F[C], G[C]) = (F.map2(fa._1, fb._1)(f), G.map2(fa._2, fb._2)(f))
+
+    override def unit[A](a: => A): (F[A], G[A]) = (F.unit(a), G.unit(a))
+  }
+
+  def compose[F[_], G[_]](
+      F: Applicative[F],
+      G: Applicative[G]
+  ): Applicative[({ type f[x] = F[G[x]] })#f] = new Applicative[
+    ({
+      type f[x] = F[G[x]]
+    })#f
+  ] {
+    override def map2[A, B, C](fa: F[G[A]], fb: F[G[B]])(
+        f: (A, B) => C
+    ): F[G[C]] = F.map2(fa, fb)(G.map2(_, _)(f))
+
+    override def unit[A](a: => A): F[G[A]] = F.unit(G.unit(a))
+  }
+
+}
