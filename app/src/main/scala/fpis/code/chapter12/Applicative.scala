@@ -32,9 +32,9 @@ trait Applicative[F[_]] extends Functor[F] {
   def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] = map2(fa, fb)((_, _))
 
   def filterM[A](as: List[A])(f: A => F[Boolean]): F[List[A]] =
-    as.foldLeft(unit(List.empty[A]))((fas, a) =>
-      map2(fas, f(a))((as, add) => if (add) as :+ a else as)
-    )
+    as.foldLeft(unit(List.empty[A])) { (fas, a) =>
+      map2(fas, f(a))((as, b) => if (b) as :+ a else as)
+    }
 
   def map3[A, B, C, D](fa: F[A], fb: F[B], fc: F[C])(f: (A, B, C) => D): F[D] =
     apply(apply(apply(unit(f.curried))(fa))(fb))(fc)
@@ -42,6 +42,11 @@ trait Applicative[F[_]] extends Functor[F] {
   def map4[A, B, C, D, E](fa: F[A], fb: F[B], fc: F[C], fd: F[D])(
       f: (A, B, C, D) => E
   ): F[E] = apply(apply(apply(apply(unit(f.curried))(fa))(fb))(fc))(fd)
+
+  def sequenceMap[K, V](mfv: Map[K, F[V]]): F[Map[K, V]] =
+    mfv.foldRight(unit(Map.empty[K, V])) { (kfv, fm) =>
+      map2(kfv._2, fm)((v, m) => m + (kfv._1 -> v))
+    }
 
 }
 
