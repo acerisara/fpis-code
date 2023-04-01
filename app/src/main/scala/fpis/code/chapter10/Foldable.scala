@@ -3,6 +3,7 @@ package fpis.code.chapter10
 import fpis.code.chapter3.{Branch, Leaf, Tree}
 
 trait Foldable[F[_]] {
+  // TODO: Write everything in terms of foldMap
   def foldRight[A, B](as: F[A])(z: B)(f: (A, B) => B): B
   def foldLeft[A, B](as: F[A])(z: B)(f: (B, A) => B): B
   def foldMap[A, B](as: F[A])(f: A => B)(mb: Monoid[B]): B
