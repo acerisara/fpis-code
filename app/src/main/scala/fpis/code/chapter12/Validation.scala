@@ -73,8 +73,6 @@ object Validation {
       validName(name),
       validBirthdate(birthdate),
       validPhone(phone)
-    )(
-      WebForm
-    )
+    )(WebForm)
 
 }
