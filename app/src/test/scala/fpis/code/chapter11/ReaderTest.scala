@@ -15,7 +15,7 @@ class ReaderTest extends AnyFunSuite {
     })#f
   ] = Reader.readerMonad[Int]
 
-  test("Reader monad sequence") {
+  test("Reader.sequence") {
     // sequence runs n function passing the same
     // input value and returns the results of each invocation
     val s = rm.sequence(
@@ -29,7 +29,7 @@ class ReaderTest extends AnyFunSuite {
     s.run(10) should be(List("1x 10", "2x 10", "3x 10"))
   }
 
-  test("Reader monad replicateM") {
+  test("Reader.replicateM") {
     // replicateM runs the same function n times
     // and returns the results of each invocation
     val s = rm.replicateM(3, Reader(_.toString))
@@ -37,7 +37,7 @@ class ReaderTest extends AnyFunSuite {
     s.run(10) should be(List("10", "10", "10"))
   }
 
-  test("Reader monad join") {
+  test("Reader.join") {
     val s =
       rm.join(Reader((r1: Int) => Reader((r2: Int) => (r1 + r2).toString)))
 

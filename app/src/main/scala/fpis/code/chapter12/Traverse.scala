@@ -2,6 +2,8 @@ package fpis.code.chapter12
 
 import fpis.code.chapter10.{Foldable, Monoid}
 import fpis.code.chapter11.Functor
+import fpis.code.chapter11.Monad.stateMonad
+import fpis.code.chapter6.State
 
 import scala.language.implicitConversions
 
@@ -25,10 +27,31 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
     def map2[A, B, C](m1: M, m2: M)(f: (A, B) => C): M = M.op(m1, m2)
   }
 
-  def foldMap[A, M](as: F[A])(f: A => M)(mb: Monoid[M]): M =
-    traverse[({ type f[x] = Const[M, x] })#f, A, Nothing](as)(f)(
+  def foldMap[A, M](as: F[A])(f: A => M)(mb: Monoid[M]): M = {
+    traverse[({ type f[x] = Const[M, x] })#f, A, Nothing](as)(f) {
       monoidApplicative(mb)
-    )
+    }
+  }
+
+  def traverseS[S, A, B](fa: F[A])(f: A => State[S, B]): State[S, F[B]] =
+    traverse[({ type f[x] = State[S, x] })#f, A, B](fa)(f)(stateMonad)
+
+  def zipWithIndex[A](ta: F[A]): F[(A, Int)] =
+    traverseS(ta)((a: A) =>
+      for {
+        i <- State.get[Int]
+        _ <- State.set(i + 1)
+      } yield (a, i)
+    ).run(0)._1
+
+  def toList[A](fa: F[A]): List[A] =
+    traverseS(fa)((a: A) =>
+      for {
+        as <- State.get[List[A]]
+        _ <- State.set(a :: as)
+      } yield ()
+    ).run(Nil)._2
+
 }
 
 object Traverse {
@@ -42,6 +65,10 @@ object Traverse {
     override def foldLeft[A, B](as: List[A])(z: B)(f: (B, A) => B): B =
       as.foldLeft(z)(f)
     override def toList[A](fa: List[A]): List[A] = fa
+    override def traverse[M[_], A, B](as: List[A])(f: A => M[B])(implicit
+        M: Applicative[M]
+    ): M[List[B]] =
+      as.foldRight(M.unit(List[B]()))((a, fbs) => M.map2(f(a), fbs)(_ :: _))
   }
 
   val optionTraverse: Traverse[Option] = new Traverse[Option] {
