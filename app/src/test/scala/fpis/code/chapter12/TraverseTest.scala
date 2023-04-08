@@ -9,9 +9,9 @@ import org.scalatestplus.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TraverseTest extends AnyFunSuite {
 
-  test("Traverse.zipWithIndex") {
-    val lt = Traverse.listTraverse
+  private val lt = Traverse.listTraverse
 
+  test("Traverse.zipWithIndex") {
     lt.zipWithIndex(List.empty) should be(List.empty)
     lt.zipWithIndex(List("a", "b", "c")) should be(
       List(("a", 0), ("b", 1), ("c", 2))
@@ -19,12 +19,18 @@ class TraverseTest extends AnyFunSuite {
   }
 
   test("Traverse.toList") {
-    val lt = Traverse.listTraverse
-
     lt.toList(List.empty) should be(List.empty)
     lt.toList(List("a", "b", "c")) should be(
       List("a", "b", "c")
     )
+  }
+
+  test("Traverse.reverse") {
+    lt.reverse(List(1, 2, 3)) should be(List(3, 2, 1))
+  }
+
+  test("Traverse.foldLeft") {
+    lt.foldLeft(List(1, 2, 3))(0)(_ + _) should be(6)
   }
 
 }
