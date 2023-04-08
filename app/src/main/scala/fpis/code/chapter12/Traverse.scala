@@ -3,6 +3,7 @@ package fpis.code.chapter12
 import fpis.code.chapter10.{Foldable, Monoid}
 import fpis.code.chapter11.Functor
 import fpis.code.chapter11.Monad.stateMonad
+import fpis.code.chapter12.Applicative.product
 import fpis.code.chapter6.State
 
 import scala.language.implicitConversions
@@ -56,6 +57,13 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
 
   override def foldLeft[A, B](fa: F[A])(z: B)(f: (B, A) => B): B =
     mapAccum(fa, z)((a, b) => ((), f(b, a)))._2
+
+  def fuse[G[_], H[_], A, B](fa: F[A])(f: A => G[B], g: A => H[B])(
+      G: Applicative[G],
+      H: Applicative[H]
+  ): (G[F[B]], H[F[B]]) = traverse[({ type f[x] = (G[x], H[x]) })#f, A, B](fa) {
+    a => (f(a), g(a))
+  }(product(G, H))
 
 }
 
