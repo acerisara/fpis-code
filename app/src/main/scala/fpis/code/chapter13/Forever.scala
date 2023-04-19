@@ -9,7 +9,7 @@ object Forever {
 
     // This version has a tail recursive interpreter
     val printLine2 = Suspend(() => println("Still going..."))
-    IO2.run(IO2.forever(printLine2))
+    TailRec.run(TailRec.forever(printLine2))
   }
 
 }
