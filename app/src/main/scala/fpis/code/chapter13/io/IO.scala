@@ -1,4 +1,4 @@
-package fpis.code.chapter13
+package fpis.code.chapter13.io
 
 import fpis.code.chapter11.Monad
 

@@ -1,9 +1,11 @@
-package fpis.code.chapter13
+package fpis.code.chapter13.tailrec
 
 import fpis.code.chapter11.Monad
 
 sealed trait TailRec[A] {
+
   def flatMap[B](f: A => TailRec[B]): TailRec[B] = FlatMap(this, f)
+
   def map[B](f: A => B): TailRec[B] = flatMap(f andThen (Return(_)))
 }
 
