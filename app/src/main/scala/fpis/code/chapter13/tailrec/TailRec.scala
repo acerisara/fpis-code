@@ -7,6 +7,7 @@ sealed trait TailRec[A] {
   def flatMap[B](f: A => TailRec[B]): TailRec[B] = FlatMap(this, f)
 
   def map[B](f: A => B): TailRec[B] = flatMap(f andThen (Return(_)))
+
 }
 
 case class Return[A](a: A) extends TailRec[A]
@@ -22,7 +23,7 @@ object TailRec extends Monad[TailRec] {
   def apply[A](a: => A): TailRec[A] = unit(a)
 
   @annotation.tailrec
-  def run[A](io: TailRec[A]): A = io match {
+  def run[A](tailRec: TailRec[A]): A = tailRec match {
     case Return(a)  => a
     case Suspend(r) => r()
     case FlatMap(x, f) =>

@@ -9,6 +9,7 @@ sealed trait Async[A] {
   def flatMap[B](f: A => Async[B]): Async[B] = FlatMap(this, f)
 
   def map[B](f: A => B): Async[B] = flatMap(f andThen (Return(_)))
+
 }
 
 case class Return[A](a: A) extends Async[A]
