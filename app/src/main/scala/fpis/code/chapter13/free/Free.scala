@@ -21,6 +21,9 @@ object Free {
   type TailRec[A] = Free[Function0, A]
   type Async[A] = Free[Par, A]
 
+  trait Translate[F[_], G[_]] { def apply[A](f: F[A]): G[A] }
+  type ~>[F[_], G[_]] = Translate[F, G]
+
   def freeMonad[F[_]]: Monad[({ type f[a] = Free[F, a] })#f] = new Monad[
     ({
       type f[a] = Free[F, a]
@@ -59,6 +62,16 @@ object Free {
           case Suspend(r) => F.flatMap(r)(a => run(f(a)))
           case _ => sys.error("Impossible: `step` eliminates these cases")
         }
+    }
+
+  def runFree[F[_], G[_], A](
+      free: Free[F, A]
+  )(t: F ~> G)(implicit G: Monad[G]): G[A] =
+    step(free) match {
+      case Return(a)              => G.unit(a)
+      case Suspend(r)             => t(r)
+      case FlatMap(Suspend(r), f) => G.flatMap(t(r))(a => runFree(f(a))(t))
+      case _ => sys.error("Impossible: `step` eliminates these cases")
     }
 
 }
