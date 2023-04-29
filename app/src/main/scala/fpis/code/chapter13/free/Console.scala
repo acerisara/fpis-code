@@ -49,6 +49,7 @@ object Console {
   def runConsoleFunction0[A](a: Free[Console, A]): () => A =
     Free.runFree[Console, Function0, A](a)(consoleToFunction0)
 
+  // This version is not stack-safe
   implicit val function0Monad: Monad[Function0] = new Monad[Function0] {
     def unit[A](a: => A): () => A = () => a
 

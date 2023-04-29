@@ -74,4 +74,9 @@ object Free {
       case _ => sys.error("Impossible: `step` eliminates these cases")
     }
 
+  def forever[F[_], A, B](a: Free[F, A]): Free[F, B] = {
+    lazy val t: Free[F, B] = forever(a)
+    a flatMap (_ => t)
+  }
+
 }
