@@ -26,4 +26,16 @@ class STTest extends AnyFunSuite {
     ST.runST(p) should be((2, 1))
   }
 
+  test("STArray.fill") {
+    val p = new RunnableST[List[String]] {
+      def apply[S]: ST[S, List[String]] = for {
+        array <- STArray.fromList(List("a", "a", "a"))
+        _ <- array.fill(Map(1 -> "b", 2 -> "c"))
+        asList <- array.freeze
+      } yield asList
+    }
+
+    ST.runST(p) should be(List("a", "b", "c"))
+  }
+
 }
