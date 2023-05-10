@@ -1,5 +1,7 @@
 package fpis.code.chapter14
 
+import scala.collection.mutable
+
 sealed trait ST[S, A] { self =>
 
   protected def run(s: S): (A, S)
@@ -56,18 +58,18 @@ trait RunnableST[A] {
 }
 
 sealed abstract class STArray[S, A](implicit manifest: Manifest[A]) {
-  protected def value: Array[A]
-  def size: ST[S, Int] = ST(value.length)
+  protected def array: Array[A]
+  def size: ST[S, Int] = ST(array.length)
 
   def write(i: Int, a: A): ST[S, Unit] = new ST[S, Unit] {
     def run(s: S): (Unit, S) = {
-      value(i) = a
+      array(i) = a
       ((), s)
     }
   }
 
-  def read(i: Int): ST[S, A] = ST(value(i))
-  def freeze: ST[S, List[A]] = ST(value.toList)
+  def read(i: Int): ST[S, A] = ST(array(i))
+  def freeze: ST[S, List[A]] = ST(array.toList)
 
   def fill(xs: Map[Int, A]): ST[S, Unit] = {
     xs.foldLeft(ST[S, Unit](())) { (st, v) =>
@@ -90,12 +92,35 @@ sealed abstract class STArray[S, A](implicit manifest: Manifest[A]) {
 object STArray {
   def apply[S, A: Manifest](sz: Int, v: A): ST[S, STArray[S, A]] = ST(
     new STArray[S, A] {
-      lazy val value: Array[A] = Array.fill(sz)(v)
+      lazy val array: Array[A] = Array.fill(sz)(v)
     }
   )
 
   def fromList[S, A: Manifest](xs: List[A]): ST[S, STArray[S, A]] =
     ST(new STArray[S, A] {
-      lazy val value: Array[A] = xs.toArray
+      lazy val array: Array[A] = xs.toArray
     })
+}
+
+sealed abstract class STMap[S, K, V] {
+  protected def table: scala.collection.mutable.HashMap[K, V]
+  def size: ST[S, Int] = ST(table.size)
+
+  def get(k: K): ST[S, Option[V]] = ST(table.get(k))
+
+  def put(k: K, v: V): ST[S, Unit] = new ST[S, Unit] {
+    def run(s: S): (Unit, S) = {
+      table.put(k, v)
+      ((), s)
+    }
+  }
+
+}
+
+object STMap {
+  def apply[S, K, V](xs: (K, V)*): ST[S, STMap[S, K, V]] = ST(
+    new STMap[S, K, V] {
+      lazy val table: mutable.HashMap[K, V] = mutable.HashMap.from(xs)
+    }
+  )
 }

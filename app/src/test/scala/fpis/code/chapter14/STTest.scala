@@ -50,4 +50,27 @@ class STTest extends AnyFunSuite {
     ST.runST(p) should be(List("b", "a", "c"))
   }
 
+  test("STMap.get") {
+    val p = new RunnableST[Option[String]] {
+      def apply[S]: ST[S, Option[String]] = for {
+        map <- STMap(1 -> "a", 2 -> "b", 3 -> "c")
+        v <- map.get(1)
+      } yield v
+    }
+
+    ST.runST(p) should be(Some("a"))
+  }
+
+  test("STMap.put") {
+    val p = new RunnableST[Option[String]] {
+      def apply[S]: ST[S, Option[String]] = for {
+        map <- STMap(1 -> "a", 2 -> "b", 3 -> "c")
+        _ <- map.put(2, "B")
+        v <- map.get(2)
+      } yield v
+    }
+
+    ST.runST(p) should be(Some("B"))
+  }
+
 }
