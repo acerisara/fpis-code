@@ -38,4 +38,16 @@ class STTest extends AnyFunSuite {
     ST.runST(p) should be(List("a", "b", "c"))
   }
 
+  test("STArray.swap") {
+    val p = new RunnableST[List[String]] {
+      def apply[S]: ST[S, List[String]] = for {
+        array <- STArray.fromList(List("a", "b", "c"))
+        _ <- array.swap(0, 1)
+        asList <- array.freeze
+      } yield asList
+    }
+
+    ST.runST(p) should be(List("b", "a", "c"))
+  }
+
 }
