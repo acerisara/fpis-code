@@ -2,6 +2,8 @@ package fpis.code.chapter14
 
 object QuickSort {
 
+  def empty[S]: ST[S, Unit] = ST[S, Unit](())
+
   def partition[S](
       array: STArray[S, Int],
       n: Int,
@@ -11,7 +13,7 @@ object QuickSort {
     pivotVal <- array.read(pivot)
     _ <- array.swap(pivot, r)
     jRef <- STRef(n)
-    _ <- (n until r).foldLeft(ST[S, Unit](())) { (st, i) =>
+    _ <- (n until r).foldLeft(empty[S]) { (st, i) =>
       for {
         _ <- st
         e <- array.read(i)
@@ -21,7 +23,7 @@ object QuickSort {
             _ <- array.swap(i, j)
             _ <- jRef.write(j + 1)
           } yield ()
-          else ST[S, Unit](())
+          else empty[S]
       } yield ()
     }
     j <- jRef.read
@@ -34,7 +36,7 @@ object QuickSort {
       _ <- qs(array, n, pi - 1)
       _ <- qs(array, pi + 1, r)
     } yield ()
-  else ST[S, Unit](())
+  else empty[S]
 
   def quicksort(xs: List[Int]): List[Int] =
     if (xs.isEmpty) xs
