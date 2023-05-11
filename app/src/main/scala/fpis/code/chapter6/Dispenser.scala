@@ -24,19 +24,15 @@ case class Dispenser(locked: Boolean, candies: Int, coins: Int) {
 
 object Dispenser {
 
-  // TODO: Try using modify
-
   def next(
-      dispenser: State[Dispenser, (Int, Int)],
+      dispenser: State[Dispenser, Unit],
       input: Input
-  ): State[Dispenser, (Int, Int)] = for {
+  ): State[Dispenser, Unit] = for {
     _ <- dispenser
-    dispenser <- State.get[Dispenser]
-    nDispenser = dispenser.trigger(input)
-    _ <- State.set(nDispenser)
-  } yield (nDispenser.coins, nDispenser.candies)
+    _ <- State.modify[Dispenser](_.trigger(input))
+  } yield ()
 
-  def simulateDispenser(inputs: List[Input]): State[Dispenser, (Int, Int)] =
-    inputs.foldLeft(State.unit[Dispenser, (Int, Int)]((0, 0)))(next)
+  def simulateDispenser(inputs: List[Input]): State[Dispenser, Unit] =
+    inputs.foldLeft(State.unit[Dispenser, Unit](()))(next)
 
 }

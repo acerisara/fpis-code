@@ -34,4 +34,9 @@ object State {
 
   def set[S](s: S): State[S, Unit] = State(_ => ((), s))
 
+  def modify[S](f: S => S): State[S, Unit] = for {
+    s <- get
+    _ <- set(f(s))
+  } yield ()
+
 }

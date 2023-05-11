@@ -27,7 +27,7 @@ class DispenserTest extends AnyFunSuite {
     val result =
       s.run(Dispenser(locked = true, candies = 5, coins = 10))
 
-    result should be((14, 1), Dispenser(locked = true, candies = 1, coins = 14))
+    result._2 should be(Dispenser(locked = true, candies = 1, coins = 14))
   }
 
   test("turn the knob on a locked dispenser") {
@@ -36,7 +36,7 @@ class DispenserTest extends AnyFunSuite {
     val result =
       s.run(Dispenser(locked = true, candies = 5, coins = 10))
 
-    result should be((10, 5), Dispenser(locked = true, candies = 5, coins = 10))
+    result._2 should be(Dispenser(locked = true, candies = 5, coins = 10))
   }
 
   test("insert a coin into an unlocked dispenser") {
@@ -45,10 +45,7 @@ class DispenserTest extends AnyFunSuite {
     val result =
       s.run(Dispenser(locked = false, candies = 5, coins = 10))
 
-    result should be(
-      (10, 5),
-      Dispenser(locked = false, candies = 5, coins = 10)
-    )
+    result._2 should be(Dispenser(locked = false, candies = 5, coins = 10))
   }
 
   test("a dispenser that’s out of candy ignores all inputs") {
@@ -64,7 +61,7 @@ class DispenserTest extends AnyFunSuite {
     val result =
       s.run(Dispenser(locked = true, candies = 0, coins = 10))
 
-    result should be((10, 0), Dispenser(locked = true, candies = 0, coins = 10))
+    result._2 should be(Dispenser(locked = true, candies = 0, coins = 10))
   }
 
   test("insert a coin into a locked dispenser") {
@@ -73,10 +70,7 @@ class DispenserTest extends AnyFunSuite {
     val result =
       s.run(Dispenser(locked = true, candies = 5, coins = 10))
 
-    result should be(
-      (11, 5),
-      Dispenser(locked = false, candies = 5, coins = 11)
-    )
+    result._2 should be(Dispenser(locked = false, candies = 5, coins = 11))
   }
 
   test("turn the knob on an unlocked dispenser") {
@@ -85,7 +79,7 @@ class DispenserTest extends AnyFunSuite {
     val result =
       s.run(Dispenser(locked = false, candies = 5, coins = 10))
 
-    result should be((10, 4), Dispenser(locked = true, candies = 4, coins = 10))
+    result._2 should be(Dispenser(locked = true, candies = 4, coins = 10))
   }
 
 }
