@@ -16,9 +16,9 @@ object QuickSort {
     _ <- (n until r).foldLeft(empty[S]) { (st, i) =>
       for {
         _ <- st
-        e <- array.read(i)
+        elem <- array.read(i)
         _ <-
-          if (e < pivotVal) for {
+          if (elem < pivotVal) for {
             j <- jRef.read
             _ <- array.swap(i, j)
             _ <- jRef.write(j + 1)
@@ -32,9 +32,9 @@ object QuickSort {
 
   def qs[S](array: STArray[S, Int], n: Int, r: Int): ST[S, Unit] = if (n < r)
     for {
-      pi <- partition(array, n, r, n + (r - n) / 2)
-      _ <- qs(array, n, pi - 1)
-      _ <- qs(array, pi + 1, r)
+      p <- partition(array, n, r, n + (r - n) / 2)
+      _ <- qs(array, n, p - 1)
+      _ <- qs(array, p + 1, r)
     } yield ()
   else empty[S]
 
@@ -43,10 +43,10 @@ object QuickSort {
     else
       ST.runST(new RunnableST[List[Int]] {
         def apply[S]: ST[S, List[Int]] = for {
-          arr <- STArray.fromList(xs)
-          size <- arr.size
-          _ <- qs(arr, 0, size - 1)
-          sorted <- arr.freeze
+          array <- STArray.fromList(xs)
+          size <- array.size
+          _ <- qs(array, 0, size - 1)
+          sorted <- array.freeze
         } yield sorted
       })
 
