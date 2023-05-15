@@ -1,6 +1,6 @@
 package fpis.code.chapter15
 
-import fpis.code.chapter15.Process.{filter, liftOne, sum}
+import fpis.code.chapter15.Process._
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be
@@ -23,6 +23,31 @@ class ProcessTest extends AnyFunSuite {
   test("Process.sum") {
     sum(LazyList(1.0, 2.0, 3.0, 4.0)).toList should be(
       List(1.0, 3.0, 6.0, 10.0)
+    )
+  }
+
+  test("Process.take") {
+    take(0)(LazyList(1, 2, 3)).toList should be(List.empty)
+    take(2)(LazyList(1, 2, 3)).toList should be(List(1, 2))
+  }
+
+  test("Process.drop") {
+    drop(0)(LazyList(1, 2, 3)).toList should be(List(1, 2, 3))
+    drop(2)(LazyList(1, 2, 3)).toList should be(List(3))
+  }
+
+  test("Process.takeWhile") {
+    takeWhile[Int](_ > 5)(LazyList(1, 2, 3, -1)).toList should be(List.empty)
+    takeWhile[Int](_ > 0)(LazyList(1, 2, 3, -1)).toList should be(List(1, 2, 3))
+  }
+
+  test("Process.dropWhile") {
+    dropWhile[Int](_ > 5)(LazyList(1, 2, 3, -1)).toList should be(
+      List(1, 2, 3, -1)
+    )
+
+    dropWhile[Int](_ < 0)(LazyList(-1, -2, 1, 2, 3, -1)).toList should be(
+      List(1, 2, 3)
     )
   }
 

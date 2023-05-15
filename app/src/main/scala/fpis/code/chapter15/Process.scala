@@ -51,10 +51,44 @@ object Process {
     def go(acc: Double): Process[Double, Double] =
       Await {
         case Some(d) => Emit(d + acc, go(d + acc))
-        case None    => Halt()
+        case _       => Halt()
       }
 
     go(0.0)
   }
+
+  def take[I](n: Int): Process[I, I] = {
+    def go(n: Int): Process[I, I] =
+      Await[I, I] {
+        case Some(i) if n > 0 => Emit(i, go(n - 1))
+        case _                => Halt()
+      }
+
+    go(n)
+  }
+
+  def drop[I](n: Int): Process[I, I] = {
+    def go(n: Int): Process[I, I] =
+      Await[I, I] {
+        case Some(_) if n > 0 => go(n - 1)
+        case Some(i)          => Emit(i, go(n))
+        case _                => Halt()
+      }
+
+    go(n)
+  }
+
+  def takeWhile[I](f: I => Boolean): Process[I, I] =
+    Await {
+      case Some(i) if f(i) => Emit(i, takeWhile(f))
+      case _               => Halt()
+    }
+
+  def dropWhile[I](f: I => Boolean): Process[I, I] =
+    Await {
+      case Some(i) if f(i) => dropWhile(f)
+      case Some(i)         => Emit(i, dropWhile(f))
+      case _               => Halt()
+    }
 
 }
