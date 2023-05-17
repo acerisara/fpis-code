@@ -21,7 +21,19 @@ class ProcessTest extends AnyFunSuite {
   }
 
   test("Process.sum") {
+    sum(LazyList.empty).toList should be(
+      List.empty
+    )
+
     sum(LazyList(1.0, 2.0, 3.0, 4.0)).toList should be(
+      List(1.0, 3.0, 6.0, 10.0)
+    )
+
+    sumL(LazyList.empty).toList should be(
+      List.empty
+    )
+
+    sumL(LazyList(1.0, 2.0, 3.0, 4.0)).toList should be(
       List(1.0, 3.0, 6.0, 10.0)
     )
   }
@@ -48,6 +60,38 @@ class ProcessTest extends AnyFunSuite {
 
     dropWhile[Int](_ < 0)(LazyList(-1, -2, 1, 2, 3, -1)).toList should be(
       List(1, 2, 3)
+    )
+  }
+
+  test("Process.count") {
+    count[String](LazyList.empty).toList should be(
+      List.empty
+    )
+
+    count[String](LazyList("a", "b", "c")).toList should be(
+      List(1, 2, 3)
+    )
+
+    countL[String](LazyList.empty).toList should be(
+      List.empty
+    )
+
+    countL[String](LazyList("a", "b", "c")).toList should be(
+      List(1, 2, 3)
+    )
+  }
+
+  test("Process.mean") {
+    mean(LazyList.empty).toList should be(
+      List.empty
+    )
+
+    mean(LazyList(1, 1, 1, 1)).toList should be(
+      List(1, 1, 1, 1)
+    )
+
+    mean(LazyList(1, 2, 3, 4)).toList should be(
+      List(1, 1.5, 2, 2.5)
     )
   }
 

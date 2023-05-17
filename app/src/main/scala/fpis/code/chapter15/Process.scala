@@ -91,4 +91,38 @@ object Process {
       case _               => Halt()
     }
 
+  def count[I]: Process[I, Int] = {
+    def go(count: Int): Process[I, Int] =
+      Await[I, Int] {
+        case Some(_) => Emit(count, go(count + 1))
+        case _       => Halt()
+      }
+
+    go(1)
+  }
+
+  def mean: Process[Double, Double] = {
+    def go(sum: Double, n: Int): Process[Double, Double] = {
+      Await[Double, Double] {
+        case Some(i) => Emit((sum + i) / (n + 1), go(sum + i, n + 1))
+        case _       => Halt()
+      }
+    }
+
+    go(0, 0)
+  }
+
+  def loop[S, I, O](z: S)(f: (I, S) => (O, S)): Process[I, O] =
+    Await[I, O] {
+      case Some(i) =>
+        f(i, z) match {
+          case (o, s2) => Emit(o, loop(s2)(f))
+        }
+      case _ => Halt()
+    }
+
+  def sumL: Process[Double, Double] = loop(0.0)((i, s) => (i + s, i + s))
+
+  def countL[I]: Process[I, Int] = loop(1)((_, s) => (s, s + 1))
+
 }
