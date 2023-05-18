@@ -26,6 +26,19 @@ sealed trait Process[I, O] {
     go(this)
   }
 
+  def |>[O2](p2: Process[O, O2]): Process[I, O2] = {
+    p2 match {
+      case Halt()     => Halt()
+      case Emit(h, t) => Emit(h, this |> t)
+      case Await(recv) =>
+        this match {
+          case Emit(h, t)   => t |> recv(Some(h))
+          case Halt()       => Halt() |> recv(None)
+          case Await(recv2) => Await((i: Option[I]) => recv2(i) |> p2)
+        }
+    }
+  }
+
 }
 
 case class Emit[I, O](head: O, tail: Process[I, O] = Halt[I, O]())
@@ -40,6 +53,8 @@ object Process {
       case Some(i) => Emit(f(i))
       case None    => Halt()
     }
+
+  def lift[I, O](f: I => O): Process[I, O] = liftOne(f).repeat
 
   def filter[I](p: I => Boolean): Process[I, I] =
     Await[I, I] {
