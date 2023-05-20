@@ -183,4 +183,11 @@ object Process {
     ): Process[I, O2] = p flatMap f
   }
 
+  def exists[I](f: I => Boolean): Process[I, Boolean] =
+    Await[I, Boolean] {
+      case Some(i) if f(i) => Emit(true)
+      case Some(_)         => exists(f)
+      case _               => Emit(false)
+    }
+
 }

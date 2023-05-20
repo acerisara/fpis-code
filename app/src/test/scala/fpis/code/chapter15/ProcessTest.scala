@@ -111,4 +111,12 @@ class ProcessTest extends AnyFunSuite {
     )
   }
 
+  test("Process.exists") {
+    val p = exists[Int](_ % 2 == 0)
+
+    p(LazyList.empty).toList should be(List(false))
+    p(LazyList(1, 3, 5, 7)).toList should be(List(false))
+    p(LazyList(1, 3, 5, 6, 7)).toList should be(List(true))
+  }
+
 }
