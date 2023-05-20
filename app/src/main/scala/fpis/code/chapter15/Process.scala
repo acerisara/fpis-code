@@ -1,5 +1,8 @@
 package fpis.code.chapter15
 
+import fpis.code.chapter11.Monad
+import fpis.code.chapter15.Process.lift
+
 sealed trait Process[I, O] {
 
   def apply(i: LazyList[I]): LazyList[O] = this match {
@@ -37,6 +40,34 @@ sealed trait Process[I, O] {
           case Await(recv2) => Await((i: Option[I]) => recv2(i) |> p2)
         }
     }
+  }
+
+  def map[O2](f: O => O2): Process[I, O2] = this |> lift(f)
+
+  def ++(p: => Process[I, O]): Process[I, O] = this match {
+    case Halt()      => p
+    case Emit(h, t)  => Emit(h, t ++ p)
+    case Await(recv) => Await(recv andThen (_ ++ p))
+  }
+
+  def flatMap[O2](f: O => Process[I, O2]): Process[I, O2] = this match {
+    case Halt()      => Halt()
+    case Emit(h, t)  => f(h) ++ t.flatMap(f)
+    case Await(recv) => Await(recv andThen (_ flatMap f))
+  }
+
+  def zipWithIndex(): Process[I, (Int, O)] = {
+    def go(acc: Int, p: Process[I, O]): Process[I, (Int, O)] = p match {
+      case Halt()     => Halt()
+      case Emit(h, t) => Emit((acc, h), go(acc + 1, t))
+      case Await(recv) =>
+        Await {
+          case Some(i) => go(acc, recv(Some(i)))
+          case None    => go(acc, Halt())
+        }
+    }
+
+    go(0, this)
   }
 
 }
@@ -139,5 +170,17 @@ object Process {
   def sumL: Process[Double, Double] = loop(0.0)((i, s) => (i + s, i + s))
 
   def countL[I]: Process[I, Int] = loop(1)((_, s) => (s, s + 1))
+
+  def monad[I]: Monad[({ type f[x] = Process[I, x] })#f] = new Monad[
+    ({
+      type f[x] = Process[I, x]
+    })#f
+  ] {
+    override def unit[O](o: => O): Process[I, O] = Emit(o)
+
+    override def flatMap[O, O2](p: Process[I, O])(
+        f: O => Process[I, O2]
+    ): Process[I, O2] = p flatMap f
+  }
 
 }

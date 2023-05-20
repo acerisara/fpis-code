@@ -97,8 +97,18 @@ class ProcessTest extends AnyFunSuite {
 
   test("Process.pipe") {
     val p = filter[Int](_ % 2 == 0) |> lift[Int, Int](_ + 1)
+
     p(LazyList.empty).toList should be(List.empty)
     p(LazyList(1, 2, 3, 4)).toList should be(List(3, 5))
+  }
+
+  test("Process.zipWithIndex") {
+    val p = filter[String](_ => true).zipWithIndex()
+
+    p(LazyList.empty).toList should be(List.empty)
+    p(LazyList("a", "b", "c")).toList should be(
+      List((0, "a"), (1, "b"), (2, "c"))
+    )
   }
 
 }
