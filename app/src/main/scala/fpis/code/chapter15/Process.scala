@@ -1,7 +1,10 @@
 package fpis.code.chapter15
 
 import fpis.code.chapter11.Monad
+import fpis.code.chapter13.io.IO
 import fpis.code.chapter15.Process.lift
+
+import java.io.PrintWriter
 
 sealed trait Process[I, O] {
 
@@ -189,5 +192,71 @@ object Process {
       case Some(_)         => exists(f)
       case _               => Emit(false)
     }
+
+  def processFile[A, B](
+      file: java.io.File,
+      process: Process[String, A],
+      acc: B
+  )(g: (B, A) => B): IO[B] = IO {
+    @annotation.tailrec
+    def go(lines: Iterator[String], process: Process[String, A], acc: B): B =
+      process match {
+        case Halt() => acc
+        case Await(recv) =>
+          val next =
+            if (lines.hasNext) recv(Some(lines.next()))
+            else recv(None)
+          go(lines, next, acc)
+        case Emit(h, t) => go(lines, t, g(acc, h))
+      }
+
+    val reader = io.Source.fromFile(file)
+    try go(reader.getLines(), process, acc)
+    finally reader.close
+  }
+
+  def transformFile[A](
+      input: java.io.File,
+      output: java.io.File,
+      process: Process[String, A]
+  ): IO[Unit] = IO {
+    @annotation.tailrec
+    def go(
+        lines: Iterator[String],
+        process: Process[String, A],
+        writer: PrintWriter
+    ): Unit =
+      process match {
+        case Halt() => Halt()
+        case Await(recv) =>
+          val next =
+            if (lines.hasNext) recv(Some(lines.next()))
+            else recv(None)
+          go(lines, next, writer)
+        case Emit(h, t) =>
+          writer.println(h)
+          go(lines, t, writer)
+      }
+
+    val reader = io.Source.fromFile(input)
+    val writer = new PrintWriter(output)
+
+    try go(reader.getLines(), process, writer)
+    finally {
+      reader.close()
+      writer.close()
+    }
+  }
+
+  def toCelsiusTransformer(
+      input: java.io.File,
+      output: java.io.File
+  ): IO[Unit] = {
+    def toCelsius(fahrenheit: Double): Double =
+      (5.0 / 9.0) * (fahrenheit - 32.0)
+
+    val p = lift[String, Double](_.toDouble) |> lift[Double, Double](toCelsius)
+    transformFile(input, output, p)
+  }
 
 }

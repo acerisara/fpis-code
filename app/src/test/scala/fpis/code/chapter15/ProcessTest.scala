@@ -7,6 +7,9 @@ import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.junit.JUnitRunner
 
+import java.io.{File, PrintWriter}
+import scala.io.Source
+
 @RunWith(classOf[JUnitRunner])
 class ProcessTest extends AnyFunSuite {
 
@@ -117,6 +120,33 @@ class ProcessTest extends AnyFunSuite {
     p(LazyList.empty).toList should be(List(false))
     p(LazyList(1, 3, 5, 7)).toList should be(List(false))
     p(LazyList(1, 3, 5, 6, 7)).toList should be(List(true))
+  }
+
+  test("Process.toCelsiusTransformer") {
+    def newFile(prefix: String): File = {
+      val f = File.createTempFile(prefix, null)
+      f.deleteOnExit()
+      f
+    }
+
+    def write[A](content: List[A], f: File): Unit = {
+      val writer = new PrintWriter(f)
+      try content.foreach(writer.println(_))
+      finally writer.close()
+    }
+
+    def read(f: File): List[String] = {
+      val source = Source.fromFile(f)
+      try source.getLines().toList
+      finally source.close()
+    }
+
+    val input = newFile("input")
+    val output = newFile("output")
+    write(List(32, 41, 50), input)
+
+    toCelsiusTransformer(input, output).run
+    read(output).map(_.toDouble) should be(List(0, 5, 10))
   }
 
 }
