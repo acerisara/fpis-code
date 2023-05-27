@@ -1,6 +1,6 @@
 package fpis.code.chapter15
 
-import fpis.code.chapter15.Process._
+import fpis.code.chapter15.process1.Process._
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be

@@ -1,8 +1,8 @@
-package fpis.code.chapter15
+package fpis.code.chapter15.process1
 
 import fpis.code.chapter11.Monad
 import fpis.code.chapter13.io.IO
-import fpis.code.chapter15.Process.lift
+import fpis.code.chapter15.process1.Process.lift
 
 import java.io.PrintWriter
 

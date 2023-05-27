@@ -18,8 +18,8 @@ object IO extends Monad[IO] {
   override def flatMap[A, B](fa: IO[A])(f: A => IO[B]): IO[B] = fa flatMap f
   def apply[A](a: => A): IO[A] = unit(a)
 
-  def forever[A, B](a: IO[A]): IO[B] = {
-    lazy val t: IO[B] = forever(a)
-    a flatMap (_ => t)
+  def forever[A, B](io: IO[A]): IO[B] = {
+    lazy val t: IO[B] = forever(io)
+    io flatMap (_ => t)
   }
 }

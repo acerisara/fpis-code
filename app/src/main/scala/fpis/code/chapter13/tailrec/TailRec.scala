@@ -34,9 +34,9 @@ object TailRec extends Monad[TailRec] {
       }
   }
 
-  def forever[A, B](a: TailRec[A]): TailRec[B] = {
-    lazy val t: TailRec[B] = forever(a)
-    a flatMap (_ => t)
+  def forever[A, B](tailRec: TailRec[A]): TailRec[B] = {
+    lazy val t: TailRec[B] = forever(tailRec)
+    tailRec flatMap (_ => t)
   }
 
 }
