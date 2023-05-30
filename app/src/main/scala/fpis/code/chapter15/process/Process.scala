@@ -1,8 +1,8 @@
 package fpis.code.chapter15.process
 
+import fpis.code.chapter11.Monad
 import fpis.code.chapter11.Monad.parMonad
 import fpis.code.chapter13.free.Free.{IO, run}
-import fpis.code.chapter13.free.Return
 import fpis.code.chapter15.process.Process._
 import fpis.code.chapter7.Par
 
@@ -30,6 +30,19 @@ trait Process[F[_], O] {
         Await(req, recv andThen (_ flatMap f))
     }
 
+  def runLog(implicit F: MonadCatch[F]): F[IndexedSeq[O]] = {
+    def go(p: Process[F, O], acc: IndexedSeq[O]): F[IndexedSeq[O]] =
+      p match {
+        case Emit(h, t) => go(t, acc :+ h)
+        case Halt(End)  => F.unit(acc)
+        case Halt(err)  => F.fail(err)
+        case Await(req, recv) =>
+          F.flatMap(F.attempt(req)) { e => go(Try(recv(e)), acc) }
+      }
+
+    go(this, IndexedSeq())
+  }
+
 }
 
 object Process {
@@ -41,12 +54,12 @@ object Process {
   def unsafePerformIO[A](a: IO[A])(pool: ExecutorService): A =
     Par.run(pool)(run(a)(parMonad)).get()
 
-  def runLog[O](src: Process[IO, O]): IO[IndexedSeq[O]] = Return {
+  def runLog[O](src: Process[IO, O]): IO[IndexedSeq[O]] = IO {
     val E = java.util.concurrent.Executors.newFixedThreadPool(4)
 
     @annotation.tailrec
-    def go(cur: Process[IO, O], acc: IndexedSeq[O]): IndexedSeq[O] =
-      cur match {
+    def go(p: Process[IO, O], acc: IndexedSeq[O]): IndexedSeq[O] =
+      p match {
         case Emit(h, t) => go(t, acc :+ h)
         case Halt(End)  => acc
         case Halt(err)  => throw err
@@ -94,4 +107,10 @@ object Process {
 
   case object End extends Exception
   case object Kill extends Exception
+
+  trait MonadCatch[F[_]] extends Monad[F] {
+    def attempt[A](a: F[A]): F[Either[Throwable, A]]
+    def fail[A](t: Throwable): F[A]
+  }
+
 }

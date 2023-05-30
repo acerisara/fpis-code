@@ -75,10 +75,10 @@ sealed trait Process[I, O] {
 
 }
 
+case class Halt[I, O]() extends Process[I, O]
+case class Await[I, O](recv: Option[I] => Process[I, O]) extends Process[I, O]
 case class Emit[I, O](head: O, tail: Process[I, O] = Halt[I, O]())
     extends Process[I, O]
-case class Await[I, O](recv: Option[I] => Process[I, O]) extends Process[I, O]
-case class Halt[I, O]() extends Process[I, O]
 
 object Process {
 
@@ -255,6 +255,7 @@ object Process {
     def toCelsius(fahrenheit: Double): Double =
       (5.0 / 9.0) * (fahrenheit - 32.0)
 
+    // TODO: Skip comments (#) and empty lines
     val p = lift[String, Double](_.toDouble) |> lift[Double, Double](toCelsius)
     transformFile(input, output, p)
   }
