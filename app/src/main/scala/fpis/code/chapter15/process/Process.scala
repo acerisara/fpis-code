@@ -30,8 +30,7 @@ object Process {
 
   def await[F[_], A, O](req: F[A])(
       recv: Either[Throwable, A] => Process[F, O]
-  ): Process[F, O] =
-    Await(req, recv)
+  ): Process[F, O] = Await(req, recv)
 
   def Try[F[_], O](p: => Process[F, O]): Process[F, O] =
     try p
