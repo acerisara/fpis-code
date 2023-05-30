@@ -1,6 +1,12 @@
 package fpis.code.chapter15.process
 
+import fpis.code.chapter11.Monad.parMonad
+import fpis.code.chapter13.free.Free.{IO, run}
+import fpis.code.chapter13.free.Return
 import fpis.code.chapter15.process.Process._
+import fpis.code.chapter7.Par
+
+import java.util.concurrent.ExecutorService
 
 trait Process[F[_], O] {
 
@@ -31,6 +37,46 @@ object Process {
   def await[F[_], A, O](req: F[A])(
       recv: Either[Throwable, A] => Process[F, O]
   ): Process[F, O] = Await(req, recv)
+
+  def unsafePerformIO[A](a: IO[A])(pool: ExecutorService): A =
+    Par.run(pool)(run(a)(parMonad)).get()
+
+  def runLog[O](src: Process[IO, O]): IO[IndexedSeq[O]] = Return {
+    val E = java.util.concurrent.Executors.newFixedThreadPool(4)
+
+    @annotation.tailrec
+    def go(cur: Process[IO, O], acc: IndexedSeq[O]): IndexedSeq[O] =
+      cur match {
+        case Emit(h, t) => go(t, acc :+ h)
+        case Halt(End)  => acc
+        case Halt(err)  => throw err
+        case Await(req, recv) =>
+          val next =
+            try recv(Right(unsafePerformIO(req)(E)))
+            catch {
+              case err: Throwable => recv(Left(err))
+            }
+          go(next, acc)
+      }
+
+    try go(src, IndexedSeq())
+    finally E.shutdown()
+  }
+
+  import java.io.{BufferedReader, FileReader}
+
+  def getLines(fileName: String): Process[IO, String] =
+    await(IO(new BufferedReader(new FileReader(fileName)))) {
+      case Right(b) =>
+        lazy val next: Process[IO, String] = await(IO(b.readLine)) {
+          case Left(e) => await(IO(b.close()))(_ => Halt(e))
+          case Right(line) =>
+            if (line eq null) Halt(End)
+            else Emit(line, next)
+        }
+        next
+      case Left(e) => Halt(e)
+    }
 
   def Try[F[_], O](p: => Process[F, O]): Process[F, O] =
     try p

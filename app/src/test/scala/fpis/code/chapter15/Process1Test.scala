@@ -11,7 +11,7 @@ import java.io.{File, PrintWriter}
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
-class ProcessTest extends AnyFunSuite {
+class Process1Test extends AnyFunSuite {
 
   test("Process.liftOne") {
     val double = (i: Int) => i * 2

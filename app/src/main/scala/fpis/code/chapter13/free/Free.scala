@@ -1,12 +1,12 @@
 package fpis.code.chapter13.free
 
 import fpis.code.chapter11.Monad
+import fpis.code.chapter7.Par
 import fpis.code.chapter7.Par.Par
 
 sealed trait Free[F[_], A] {
 
   def flatMap[B](f: A => Free[F, B]): Free[F, B] = FlatMap(this, f)
-
   def map[B](f: A => B): Free[F, B] = flatMap(f andThen (Return(_)))
 
 }
@@ -18,8 +18,8 @@ case class FlatMap[F[_], A, B](sub: Free[F, A], k: A => Free[F, B])
 
 object Free {
 
-  type TailRec[A] = Free[Function0, A]
-  type Async[A] = Free[Par, A]
+  type IO[A] = Free[Par, A]
+  def IO[A](a: => A): IO[A] = Suspend { Par.lazyUnit(a) }
 
   trait Translate[F[_], G[_]] { def apply[A](f: F[A]): G[A] }
   type ~>[F[_], G[_]] = Translate[F, G]

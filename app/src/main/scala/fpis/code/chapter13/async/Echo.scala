@@ -15,14 +15,14 @@ object Echo {
     Par.lazyUnit(println(msg))
   )
 
-  def echo: Async[Unit] = for {
+  def echo: IO[Unit] = for {
     _ <- printLine("Enter any string:")
     s <- readLine
     _ <- printLine(s"This is the string you entered: $s")
   } yield ()
 
   def main(args: Array[String]): Unit = {
-    Async.run(echo)(es).get()
+    IO.run(echo)(es).get()
     es.shutdown()
   }
 
