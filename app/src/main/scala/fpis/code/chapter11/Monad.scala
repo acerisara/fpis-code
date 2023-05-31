@@ -35,7 +35,7 @@ trait Monad[F[_]] extends Applicative[F] {
 object Monad {
 
   val genMonad: Monad[Gen] = new Monad[Gen] {
-    def unit[A](a: => A): Gen[A] = Gen.unit(a)
+    override def unit[A](a: => A): Gen[A] = Gen.unit(a)
     override def flatMap[A, B](fa: Gen[A])(f: A => Gen[B]): Gen[B] =
       fa.flatMap(f)
   }
@@ -67,6 +67,13 @@ object Monad {
   val idMonad: Monad[Id] = new Monad[Id] {
     override def unit[A](a: => A): Id[A] = Id(a)
     override def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = fa.flatMap(f)
+  }
+
+  // Not stack-safe
+  val function0Monad: Monad[Function0] = new Monad[Function0] {
+    override def unit[A](a: => A): () => A = () => a
+    override def flatMap[A, B](a: () => A)(f: A => () => B): () => B = () =>
+      f(a())()
   }
 
   def stateMonad[S]: Monad[

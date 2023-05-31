@@ -5,6 +5,7 @@ import fpis.code.chapter13.io.IO
 import fpis.code.chapter15.process1.Process.lift
 
 import java.io.PrintWriter
+import scala.annotation.tailrec
 
 sealed trait Process[I, O] {
 
@@ -198,7 +199,7 @@ object Process {
       process: Process[String, A],
       acc: B
   )(g: (B, A) => B): IO[B] = IO {
-    @annotation.tailrec
+    @tailrec
     def go(lines: Iterator[String], process: Process[String, A], acc: B): B =
       process match {
         case Halt() => acc
@@ -220,7 +221,7 @@ object Process {
       output: java.io.File,
       process: Process[String, A]
   ): IO[Unit] = IO {
-    @annotation.tailrec
+    @tailrec
     def go(
         lines: Iterator[String],
         process: Process[String, A],

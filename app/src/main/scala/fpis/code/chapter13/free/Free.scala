@@ -1,8 +1,12 @@
 package fpis.code.chapter13.free
 
 import fpis.code.chapter11.Monad
+import fpis.code.chapter11.Monad.parMonad
 import fpis.code.chapter7.Par
 import fpis.code.chapter7.Par.Par
+
+import java.util.concurrent.ExecutorService
+import scala.annotation.tailrec
 
 sealed trait Free[F[_], A] {
 
@@ -34,7 +38,7 @@ object Free {
       fa flatMap f
   }
 
-  @annotation.tailrec
+  @tailrec
   def runTrampoline[A](free: Free[Function0, A]): A = free match {
     case Return(a)  => a
     case Suspend(r) => r()
@@ -46,7 +50,7 @@ object Free {
       }
   }
 
-  @annotation.tailrec
+  @tailrec
   def step[F[_], A](free: Free[F, A]): Free[F, A] = free match {
     case FlatMap(FlatMap(x, f), g) => step(x flatMap (a => f(a) flatMap g))
     case FlatMap(Return(x), f)     => step(f(x))
@@ -78,5 +82,8 @@ object Free {
     lazy val t: Free[F, B] = forever(free)
     free flatMap (_ => t)
   }
+
+  def unsafePerformIO[A](a: IO[A])(pool: ExecutorService): A =
+    Par.run(pool)(run(a)(parMonad)).get()
 
 }

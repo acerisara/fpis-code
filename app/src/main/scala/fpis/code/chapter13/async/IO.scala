@@ -4,6 +4,8 @@ import fpis.code.chapter11.Monad
 import fpis.code.chapter7.Par
 import fpis.code.chapter7.Par.Par
 
+import scala.annotation.tailrec
+
 sealed trait IO[A] {
 
   def flatMap[B](f: A => IO[B]): IO[B] = FlatMap(this, f)
@@ -24,7 +26,7 @@ object IO extends Monad[IO] {
 
   def apply[A](a: => A): IO[A] = unit(a)
 
-  @annotation.tailrec
+  @tailrec
   def step[A](async: IO[A]): IO[A] = async match {
     case FlatMap(FlatMap(x, f), g) => step(x flatMap (a => f(a) flatMap g))
     case FlatMap(Return(x), f)     => step(f(x))

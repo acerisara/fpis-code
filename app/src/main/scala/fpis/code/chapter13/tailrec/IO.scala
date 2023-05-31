@@ -2,6 +2,8 @@ package fpis.code.chapter13.tailrec
 
 import fpis.code.chapter11.Monad
 
+import scala.annotation.tailrec
+
 sealed trait IO[A] {
 
   def flatMap[B](f: A => IO[B]): IO[B] = FlatMap(this, f)
@@ -21,7 +23,7 @@ object IO extends Monad[IO] {
 
   def apply[A](a: => A): IO[A] = unit(a)
 
-  @annotation.tailrec
+  @tailrec
   def run[A](tailRec: IO[A]): A = tailRec match {
     case Return(a)  => a
     case Suspend(r) => r()

@@ -1,5 +1,6 @@
 package fpis.code.chapter15
 
+import fpis.code.chapter13.free.Free.unsafePerformIO
 import fpis.code.chapter15.process.Process._
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite

@@ -1,6 +1,6 @@
 package fpis.code.chapter13.free
 
-import fpis.code.chapter11.Monad
+import fpis.code.chapter11.Monad.{function0Monad, parMonad}
 import fpis.code.chapter13.free.Free.~>
 import fpis.code.chapter7.Par
 import fpis.code.chapter7.Par.Par
@@ -44,26 +44,9 @@ object Console {
   }
 
   def runConsolePar[A](a: Free[Console, A]): Par[A] =
-    Free.runFree[Console, Par, A](a)(consoleToPar)
+    Free.runFree[Console, Par, A](a)(consoleToPar)(parMonad)
 
   def runConsoleFunction0[A](a: Free[Console, A]): () => A =
-    Free.runFree[Console, Function0, A](a)(consoleToFunction0)
-
-  // This version is not stack-safe
-  implicit val function0Monad: Monad[Function0] = new Monad[Function0] {
-    def unit[A](a: => A): () => A = () => a
-
-    override def flatMap[A, B](a: () => A)(f: A => () => B): () => B = () =>
-      f(a())()
-  }
-
-  implicit val parMonad: Monad[Par] = new Monad[Par] {
-    def unit[A](a: => A): Par[A] = Par.unit(a)
-
-    override def flatMap[A, B](a: Par[A])(f: A => Par[B]): Par[B] =
-      Par.fork {
-        Par.flatMap(a)(f)
-      }
-  }
+    Free.runFree[Console, Function0, A](a)(consoleToFunction0)(function0Monad)
 
 }

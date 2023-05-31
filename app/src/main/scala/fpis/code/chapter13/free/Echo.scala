@@ -1,15 +1,8 @@
 package fpis.code.chapter13.free
 
-import fpis.code.chapter11.Monad
-
 import scala.io.StdIn.{readLine => readln}
 
 object Echo {
-
-  implicit val m: Monad[Function0] = new Monad[Function0] {
-    override def unit[A](a: => A): () => A = () => a
-    override def flatMap[A, B](fa: () => A)(f: A => () => B): () => B = f(fa())
-  }
 
   def readLine: Suspend[Function0, String] = Suspend[Function0, String] { () =>
     readln()
@@ -30,11 +23,7 @@ object Echo {
     _ <- Console.printLine(s"This is the string you entered: $s")
   } yield s
 
-  def main(args: Array[String]): Unit = {
-    // Free.runTrampoline(echo)
-    // Free.run(echo)
-
+  def main(args: Array[String]): Unit =
     Console.runConsoleFunction0(echoConsole)()
-  }
 
 }
