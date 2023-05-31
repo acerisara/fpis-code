@@ -143,7 +143,7 @@ class Process1Test extends AnyFunSuite {
 
     val input = newFile("input")
     val output = newFile("output")
-    write(List(32, 41, 50), input)
+    write(List("32", "41", "# Comment", "50", ""), input)
 
     toCelsiusTransformer(input, output).run
     read(output).map(_.toDouble) should be(List(0, 5, 10))

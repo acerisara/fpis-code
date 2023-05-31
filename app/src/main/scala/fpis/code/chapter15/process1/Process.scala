@@ -255,8 +255,12 @@ object Process {
     def toCelsius(fahrenheit: Double): Double =
       (5.0 / 9.0) * (fahrenheit - 32.0)
 
-    // TODO: Skip comments (#) and empty lines
-    val p = lift[String, Double](_.toDouble) |> lift[Double, Double](toCelsius)
+    val p = filter[String](_.nonEmpty) |> filter[String](
+      !_.startsWith("#")
+    ) |> lift[String, Double](
+      _.toDouble
+    ) |> lift[Double, Double](toCelsius)
+
     transformFile(input, output, p)
   }
 
