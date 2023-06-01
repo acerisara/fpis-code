@@ -41,6 +41,28 @@ trait Process[F[_], O] {
     go(this, IndexedSeq())
   }
 
+  def asFinalizer: Process[F, O] = this match {
+    case Emit(h, t) => Emit(h, t.asFinalizer)
+    case Halt(e)    => Halt(e)
+    case Await(req, recv) =>
+      await(req) {
+        case Left(Kill) => this.asFinalizer
+        case x          => recv(x)
+      }
+  }
+
+  def onComplete(p: => Process[F, O]): Process[F, O] =
+    this.onHalt {
+      case End => p.asFinalizer
+      case err => p.asFinalizer ++ Halt(err)
+    }
+
+  def drain[O2]: Process[F, O2] = this match {
+    case Halt(e)          => Halt(e)
+    case Emit(h, t)       => t.drain
+    case Await(req, recv) => Await(req, recv andThen (_.drain))
+  }
+
 }
 
 object Process {
@@ -107,5 +129,36 @@ object Process {
     def attempt[A](a: F[A]): F[Either[Throwable, A]]
     def fail[A](t: Throwable): F[A]
   }
+
+  def eval[F[_], A](a: F[A]): Process[F, A] =
+    await[F, A, A](a) {
+      case Left(err) => Halt(err)
+      case Right(a)  => Emit(a, Halt(End))
+    }
+
+  def eval_[F[_], A, B](a: F[A]): Process[F, B] =
+    eval[F, A](a).drain[B]
+
+  def resource[R, O](acquire: IO[R])(use: R => Process[IO, O])(
+      release: R => Process[IO, O]
+  ): Process[IO, O] =
+    eval[IO, R](acquire).flatMap(r => use(r).onComplete(release(r)))
+
+  def lines(filename: String): Process[IO, String] =
+    resource {
+      IO(io.Source.fromFile(filename))
+    } { src =>
+      lazy val iter = src.getLines()
+      def step: Option[String] = if (iter.hasNext) Some(iter.next()) else None
+
+      lazy val lines: Process[IO, String] = eval(IO(step)).flatMap {
+        case None       => Halt(End)
+        case Some(line) => Emit(line, lines)
+      }
+
+      lines
+    } { src =>
+      eval_ { IO(src.close) }
+    }
 
 }
