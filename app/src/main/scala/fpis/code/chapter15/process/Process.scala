@@ -159,4 +159,7 @@ object Process {
       lines
     } { src => eval_ { IO(src.close) } }
 
+  def join[F[_], O](p: Process[F, Process[F, O]]): Process[F, O] =
+    p.flatMap(a => a)
+
 }
