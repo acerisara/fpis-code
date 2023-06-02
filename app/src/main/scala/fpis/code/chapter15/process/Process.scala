@@ -157,8 +157,6 @@ object Process {
       }
 
       lines
-    } { src =>
-      eval_ { IO(src.close) }
-    }
+    } { src => eval_ { IO(src.close) } }
 
 }

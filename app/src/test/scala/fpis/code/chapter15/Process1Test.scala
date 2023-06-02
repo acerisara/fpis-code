@@ -1,6 +1,6 @@
 package fpis.code.chapter15
 
-import fpis.code.chapter15.process1.Process._
+import fpis.code.chapter15.process1.Process1._
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be
@@ -13,17 +13,17 @@ import scala.io.Source
 @RunWith(classOf[JUnitRunner])
 class Process1Test extends AnyFunSuite {
 
-  test("Process.liftOne") {
+  test("Process1.liftOne") {
     val double = (i: Int) => i * 2
     liftOne(double)(LazyList(1, 2, 3)).toList should be(List(2))
   }
 
-  test("Process.filter") {
+  test("Process1.filter") {
     val even = filter((x: Int) => x % 2 == 0)
     even(LazyList(1, 2, 3, 4)).toList should be(List(2, 4))
   }
 
-  test("Process.sum") {
+  test("Process1.sum") {
     sum(LazyList.empty).toList should be(
       List.empty
     )
@@ -41,22 +41,22 @@ class Process1Test extends AnyFunSuite {
     )
   }
 
-  test("Process.take") {
+  test("Process1.take") {
     take(0)(LazyList(1, 2, 3)).toList should be(List.empty)
     take(2)(LazyList(1, 2, 3)).toList should be(List(1, 2))
   }
 
-  test("Process.drop") {
+  test("Process1.drop") {
     drop(0)(LazyList(1, 2, 3)).toList should be(List(1, 2, 3))
     drop(2)(LazyList(1, 2, 3)).toList should be(List(3))
   }
 
-  test("Process.takeWhile") {
+  test("Process1.takeWhile") {
     takeWhile[Int](_ > 5)(LazyList(1, 2, 3, -1)).toList should be(List.empty)
     takeWhile[Int](_ > 0)(LazyList(1, 2, 3, -1)).toList should be(List(1, 2, 3))
   }
 
-  test("Process.dropWhile") {
+  test("Process1.dropWhile") {
     dropWhile[Int](_ > 5)(LazyList(1, 2, 3, -1)).toList should be(
       List(1, 2, 3, -1)
     )
@@ -66,7 +66,7 @@ class Process1Test extends AnyFunSuite {
     )
   }
 
-  test("Process.count") {
+  test("Process1.count") {
     count[String](LazyList.empty).toList should be(
       List.empty
     )
@@ -84,7 +84,7 @@ class Process1Test extends AnyFunSuite {
     )
   }
 
-  test("Process.mean") {
+  test("Process1.mean") {
     mean(LazyList.empty).toList should be(
       List.empty
     )
@@ -98,14 +98,14 @@ class Process1Test extends AnyFunSuite {
     )
   }
 
-  test("Process.pipe") {
+  test("Process1.pipe") {
     val p = filter[Int](_ % 2 == 0) |> lift[Int, Int](_ + 1)
 
     p(LazyList.empty).toList should be(List.empty)
     p(LazyList(1, 2, 3, 4)).toList should be(List(3, 5))
   }
 
-  test("Process.zipWithIndex") {
+  test("Process1.zipWithIndex") {
     val p = filter[String](_ => true).zipWithIndex()
 
     p(LazyList.empty).toList should be(List.empty)
@@ -114,7 +114,7 @@ class Process1Test extends AnyFunSuite {
     )
   }
 
-  test("Process.exists") {
+  test("Process1.exists") {
     val p = exists[Int](_ % 2 == 0)
 
     p(LazyList.empty).toList should be(List(false))
@@ -122,7 +122,7 @@ class Process1Test extends AnyFunSuite {
     p(LazyList(1, 3, 5, 6, 7)).toList should be(List(true))
   }
 
-  test("Process.toCelsiusTransformer") {
+  test("Process1.toCelsiusTransformer") {
     def newFile(prefix: String): File = {
       val f = File.createTempFile(prefix, null)
       f.deleteOnExit()
