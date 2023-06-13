@@ -256,11 +256,9 @@ object Process1 {
     def toCelsius(fahrenheit: Double): Double =
       (5.0 / 9.0) * (fahrenheit - 32.0)
 
-    val p = filter[String](_.nonEmpty) |> filter[String](
-      !_.startsWith("#")
-    ) |> lift[String, Double](
+    val p = filter[String](_.nonEmpty) |> filter(!_.startsWith("#")) |> lift(
       _.toDouble
-    ) |> lift[Double, Double](toCelsius)
+    ) |> lift(toCelsius)
 
     transformFile(input, output, p)
   }
