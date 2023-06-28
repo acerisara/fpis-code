@@ -10,6 +10,9 @@ object JSON {
   case class JArray(get: IndexedSeq[JSON]) extends JSON
   case class JObject(get: Map[String, JSON]) extends JSON
 
+  private val emptyArray = JArray(IndexedSeq.empty)
+  private val emptyObject = JObject(Map.empty)
+
   def whitespaceParser[Parser[+_]](P: Parsers[Parser]): Parser[Unit] = {
     import P._
 
@@ -78,8 +81,13 @@ object JSON {
     val jValue = jValueParser(P)
 
     val jValues = (ws >> comma >> jValue).many
-    val values = (ws >> (jValue ++ jValues).map(_.toIndexedSeq).map(JArray).opt)
-      .map(_.getOrElse(JArray(Vector.empty)))
+
+    val values =
+      (jValue ++ jValues)
+        .map(_.toIndexedSeq)
+        .map(JArray)
+        .opt
+        .map(_.getOrElse(emptyArray))
 
     open >> values << close
   }
@@ -110,10 +118,10 @@ object JSON {
     val ws = whitespaceParser(P)
     val jField = jFieldParser(P)
 
-    val body = ws >> jField.many.opt.map(
-      _.map(fields => JObject(fields.toMap)).getOrElse(JObject(Map.empty))
+    val body = jField.many.opt.map(
+      _.map(fields => JObject(fields.toMap)).getOrElse(emptyObject)
     )
 
-    open >> body << close
+    open >> ws >> body << close
   }
 }
