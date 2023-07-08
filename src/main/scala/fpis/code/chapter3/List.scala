@@ -71,6 +71,17 @@ object List {
     case Cons(x, xs) => f(x, foldRight(xs, z)(f))
   }
 
+  def foldRightFL[A, B](as: List[A], z: B)(f: (A, B) => B): B = {
+    // [1,2,3,4]
+    // foldLeft: ((((0 + 1) + 2) + 3) + 4)
+    // foldRight: (1 + (2 + (3 + (4 + 0))))
+
+    // reverse: [4,3,2,1]
+    // foldLeft: (((((0 + 4) + 3) + 2) + 1)
+    // This implementation maintains the correct associativity
+    foldLeft(reverse(as), z)((b, a) => f(a, b))
+  }
+
   def sumFR(ints: List[Int]): Int = foldRight(ints, 0)(_ + _)
 
   def length[A](as: List[A]): Int = foldRight(as, 0)((_, b) => b + 1)
@@ -81,6 +92,9 @@ object List {
     case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
   }
 
+  def foldLeftFR[A, B](as: List[A], z: B)(f: (B, A) => B): B =
+    foldRight(reverse(as), z)((a, b) => f(b, a))
+
   def sumFL(ints: List[Int]): Int = foldLeft(ints, 0)(_ + _)
 
   def productFL(ds: List[Double]): Double = foldLeft(ds, 0.0)(_ * _)
@@ -89,8 +103,6 @@ object List {
 
   def reverse[A](as: List[A]): List[A] =
     foldLeft(as, Nil: List[A])((b, a) => Cons(a, b))
-
-  // TODO: Write foldLeft in terms of foldRight and vice versa
 
   def appendFL[A](a1: List[A], a2: List[A]): List[A] =
     foldLeft(reverse(a1), a2)((b, a) => Cons(a, b))

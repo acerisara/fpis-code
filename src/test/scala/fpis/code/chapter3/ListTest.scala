@@ -64,6 +64,16 @@ class ListTest extends AnyFunSuite {
     List.foldRight(zeros, 0)(_ + _) should be(0)
   }
 
+  test("List.foldRight via foldLeft and vice-versa") {
+    val zeros = List(SList.fill(10000)(0): _*)
+    List.foldRightFL(zeros, 0)(_ + _) should be(0)
+
+    List.foldRight(List(1, 2, 3), 0)(_ - _) should be(2)
+    List.foldRightFL(List(1, 2, 3), 0)(_ - _) should be(2)
+    List.foldLeft(List(1, 2, 3), 0)(_ - _) should be(-6)
+    List.foldLeftFR(List(1, 2, 3), 0)(_ - _) should be(-6)
+  }
+
   test("Exercise 3.8") {
     val l = List.foldRight(List(1, 2, 3), Nil: List[Int])(Cons(_, _))
     l should be(List(1, 2, 3))
