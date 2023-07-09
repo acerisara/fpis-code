@@ -1,6 +1,6 @@
 package fpis.code.chapter11
 
-import fpis.code.chapter12.Applicative
+import fpis.code.chapter12.{Applicative, Traverse}
 import fpis.code.chapter6.State
 import fpis.code.chapter7.Par
 import fpis.code.chapter7.Par.Par
@@ -104,6 +104,41 @@ object Monad {
     ).run(0)
       ._1
       .reverse
+
+  def compose[F[_], G[_]](
+      F: Monad[F],
+      G: Monad[G]
+  ): Monad[({ type f[x] = F[G[x]] })#f] = new Monad[
+    ({
+      type f[x] = F[G[x]]
+    })#f
+  ] {
+    override def unit[A](a: => A): F[G[A]] = F.unit(G.unit(a))
+
+    // This can't be written generically, one must be traversable (see `composeM` below)
+    override def join[A](ffa: F[G[F[G[A]]]]): F[G[A]] = ???
+  }
+
+  def composeM[F[_], G[_]](
+      F: Monad[F],
+      G: Monad[G],
+      T: Traverse[G]
+  ): Monad[({ type f[x] = F[G[x]] })#f] = new Monad[
+    ({
+      type f[x] = F[G[x]]
+    })#f
+  ] {
+    override def unit[A](a: => A): F[G[A]] = F.unit(G.unit(a))
+
+    override def flatMap[A, B](fa: F[G[A]])(f: A => F[G[B]]): F[G[B]] =
+      F.flatMap(fa) { ga =>
+        // This is G[F[G[B]]] and cannot be implemented in a general way
+        // val g = G.map(ga)(f)
+        // But this is turning G[F[G[B]]] into F[G[G[B]]] where the inner G layers can be flatten with join
+        val t = T.traverse(ga)(f)(F)
+        F.map(t)(G.join)
+      }
+  }
 
 }
 
