@@ -36,15 +36,17 @@ object JSON {
 
     val jString = (quote >> chars << quote).map(JString)
 
-    val jNumber =
-      regex("(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?".r).map(_.toDouble).map(JNumber)
+    val jNumber = regex("(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?".r)
+      .map(_.toDouble)
+      .map(JNumber)
 
     val jNull = string("null").map(_ => JNull)
 
-    val jBoolean =
-      (string("true") | string("false")).map("true" == _).map(JBool)
+    val jBoolTrue = string("true").map(_ => JBool(true))
+    val jBoolFalse = string("false").map(_ => JBool(false))
+    val jBool = jBoolTrue | jBoolFalse
 
-    val jLiteral: Parser[JSON] = jString | jNumber | jNull | jBoolean
+    val jLiteral = jString | jNumber | jNull | jBool
 
     def jValue: Parser[JSON] = jLiteral | jArray | jObject
 
@@ -69,7 +71,7 @@ object JSON {
         _.map(fields => JObject(fields.toMap)).getOrElse(emptyObject)
       )
 
-      ws >> curlyBracketOpen >> ws >> body << curlyBracketClosed << ws
+      ws >> curlyBracketOpen >> ws >> body << ws << curlyBracketClosed << ws
     }
 
     jObject
