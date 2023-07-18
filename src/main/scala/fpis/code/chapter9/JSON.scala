@@ -18,8 +18,8 @@ object JSON {
 
     // WIP, grammar at https://www.json.org/json-en.html
 
-    val open = char('{')
-    val close = char('}')
+    val curlyBracketOpen = char('{')
+    val curlyBracketClosed = char('}')
     val space = char(' ')
     val linefeed = char('\n')
     val carriageReturn = char('\r')
@@ -28,8 +28,8 @@ object JSON {
     val chars = regex("\\w*".r)
     val colon = char(':')
     val comma = char(',')
-    val openArray = char('[')
-    val closeArray = char(']')
+    val squareBracketOpen = char('[')
+    val squareBracketClosed = char(']')
 
     val ws = (space | linefeed | carriageReturn | horizontalTab).many
       .map(_ => ())
@@ -44,11 +44,12 @@ object JSON {
     val jBoolean =
       (string("true") | string("false")).map("true" == _).map(JBool)
 
-    val jLiteral: Parser[JSON] =
-      ws >> (jString | jNumber | jNull | jBoolean) << ws
+    val jLiteral: Parser[JSON] = jString | jNumber | jNull | jBoolean
+
+    def jValue: Parser[JSON] = jLiteral | jArray | jObject
 
     def jArray: Parser[JArray] = {
-      val jValues = (ws >> comma >> jValue).many
+      val jValues = (comma >> ws >> jValue).many
 
       val values =
         (jValue ++ jValues)
@@ -57,23 +58,19 @@ object JSON {
           .opt
           .map(_.getOrElse(emptyArray))
 
-      openArray >> values << closeArray
+      squareBracketOpen >> values << squareBracketClosed
     }
 
     def jField: Parser[(String, JSON)] =
-      (ws >> jString).map(
-        _.get
-      ) ** (ws >> colon >> jValue << comma.opt << ws)
+      jString.map(_.get) ** (colon >> ws >> jValue << comma.opt << ws)
 
     def jObject: Parser[JObject] = {
       val body = jField.many.opt.map(
         _.map(fields => JObject(fields.toMap)).getOrElse(emptyObject)
       )
 
-      ws >> open >> ws >> body << close << ws
+      ws >> curlyBracketOpen >> ws >> body << curlyBracketClosed << ws
     }
-
-    def jValue: Parser[JSON] = jLiteral | jArray | jObject
 
     jObject
   }

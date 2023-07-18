@@ -42,8 +42,10 @@ class MyParserTest extends AnyFunSuite {
         |  "a": 1.5123,
         |  "b": "abc",
         |  "c": true,
-        |  "d": null,
+        |
+        |  "d":    null,
         |  "e": false
+        |
         |}""".stripMargin) should be(
       obj(
         Map(
@@ -57,7 +59,7 @@ class MyParserTest extends AnyFunSuite {
     )
   }
 
-  ignore("Object with array") {
+  test("Object with array") {
     parse("""
         |{
         |  "a": []
@@ -68,8 +70,68 @@ class MyParserTest extends AnyFunSuite {
         )
       )
     )
+
+    parse("""
+        |{
+        |  "a": [true, false, "abc", null, -152.234]
+        |}""".stripMargin) should be(
+      obj(
+        Map(
+          "a" -> JArray(
+            Vector(
+              JBool(true),
+              JBool(false),
+              JString("abc"),
+              JNull,
+              JNumber(-152.234)
+            )
+          )
+        )
+      )
+    )
+
+    parse("""
+        |{
+        |  "a": [true, [1, 2, 3]]
+        |}""".stripMargin) should be(
+      obj(
+        Map(
+          "a" -> JArray(
+            Vector(
+              JBool(true),
+              JArray(
+                Vector(
+                  JNumber(1),
+                  JNumber(2),
+                  JNumber(3)
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
-  ignore("Object with nested object") {}
+  test("Object with nested structure") {
+    parse("""
+        |{
+        |  "a": {
+        |    "b": 1,
+        |    "c": true
+        |  }
+        |}""".stripMargin) should be(
+      obj(
+        Map(
+          "a" -> JObject(
+            Map(
+              "b" -> JNumber(1),
+              "c" -> JBool(true)
+            )
+          )
+        )
+      )
+    )
+  }
 
 }
