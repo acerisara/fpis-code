@@ -66,7 +66,7 @@ class MyParserTest extends AnyFunSuite {
         |}""".stripMargin) should be(
       obj(
         Map(
-          "a" -> JArray(Vector.empty)
+          "a" -> emptyArray
         )
       )
     )
