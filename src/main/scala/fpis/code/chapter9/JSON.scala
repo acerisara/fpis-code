@@ -10,102 +10,8 @@ object JSON {
   case class JArray(get: IndexedSeq[JSON]) extends JSON
   case class JObject(get: Map[String, JSON]) extends JSON
 
-  private val emptyArray = JArray(IndexedSeq.empty)
-  private val emptyObject = JObject(Map.empty)
-
-  def whitespaceParser[Parser[+_]](P: Parsers[Parser]): Parser[Unit] = {
-    import P._
-
-    val space = char(' ')
-    val linefeed = char('\n')
-    val carriageReturn = char('\r')
-    val horizontalTab = char('\t')
-
-    (space | linefeed | carriageReturn | horizontalTab).many.map(_ => ())
-  }
-
-  def jStringParser[Parser[+_]](P: Parsers[Parser]): Parser[JString] = {
-    import P._
-
-    val quote = char('"')
-    val chars = regex("\\w*".r)
-
-    // Simplified version, doesn't support control characters
-    (quote >> chars << quote).map(JString)
-  }
-
-  def jNumberParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
-    import P._
-
-    // Simplified version, doesn't support e
-    val number = regex("(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?".r)
-    number.map(_.toDouble).map(JNumber)
-  }
-
-  def jNullParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
-    import P._
-
-    string("null").map(_ => JNull)
-  }
-
-  def jBoolParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
-    import P._
-
-    (string("true") | string("false")).map("true" == _).map(JBool)
-  }
-
-  def jValueParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
-    import P._
-
-    val ws = whitespaceParser(P)
-    val jString = jStringParser(P)
-    val jNumber = jNumberParser(P)
-    val jNull = jNullParser(P)
-    val jBool = jBoolParser(P)
-
-    val literal = jString | jNumber | jBool | jNull
-    // TODO: Add support for array and objects
-    val value = literal
-
-    ws >> value << ws
-  }
-
-  def jArrayParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
-    import P._
-
-    val open = char('[')
-    val close = char(']')
-    val comma = char(',')
-
-    val ws = whitespaceParser(P)
-    val jValue = jValueParser(P)
-
-    val jValues = (ws >> comma >> jValue).many
-
-    val values =
-      (jValue ++ jValues)
-        .map(_.toIndexedSeq)
-        .map(JArray)
-        .opt
-        .map(_.getOrElse(emptyArray))
-
-    open >> values << close
-  }
-
-  def jFieldParser[Parser[+_]](P: Parsers[Parser]): Parser[(String, JSON)] = {
-    import P._
-
-    val colon = char(':')
-    val comma = char(',')
-
-    val ws = whitespaceParser(P)
-    val jString = jStringParser(P)
-    val jValue = jValueParser(P)
-
-    (ws >> jString).map(
-      _.get
-    ) ** (ws >> colon >> jValue << comma.opt << ws)
-  }
+  val emptyArray: JArray = JArray(IndexedSeq.empty)
+  val emptyObject: JObject = JObject(Map.empty)
 
   def jsonParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
     import P._
@@ -114,14 +20,61 @@ object JSON {
 
     val open = char('{')
     val close = char('}')
+    val space = char(' ')
+    val linefeed = char('\n')
+    val carriageReturn = char('\r')
+    val horizontalTab = char('\t')
+    val quote = char('"')
+    val chars = regex("\\w*".r)
+    val colon = char(':')
+    val comma = char(',')
+    val openArray = char('[')
+    val closeArray = char(']')
 
-    val ws = whitespaceParser(P)
-    val jField = jFieldParser(P)
+    val ws = (space | linefeed | carriageReturn | horizontalTab).many
+      .map(_ => ())
 
-    val body = jField.many.opt.map(
-      _.map(fields => JObject(fields.toMap)).getOrElse(emptyObject)
-    )
+    val jString = (quote >> chars << quote).map(JString)
 
-    open >> ws >> body << close
+    val jNumber =
+      regex("(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?".r).map(_.toDouble).map(JNumber)
+
+    val jNull = string("null").map(_ => JNull)
+
+    val jBoolean =
+      (string("true") | string("false")).map("true" == _).map(JBool)
+
+    val jLiteral: Parser[JSON] =
+      ws >> (jString | jNumber | jNull | jBoolean) << ws
+
+    def jArray: Parser[JArray] = {
+      val jValues = (ws >> comma >> jValue).many
+
+      val values =
+        (jValue ++ jValues)
+          .map(_.toVector)
+          .map(JArray)
+          .opt
+          .map(_.getOrElse(emptyArray))
+
+      openArray >> values << closeArray
+    }
+
+    def jField: Parser[(String, JSON)] =
+      (ws >> jString).map(
+        _.get
+      ) ** (ws >> colon >> jValue << comma.opt << ws)
+
+    def jObject: Parser[JObject] = {
+      val body = jField.many.opt.map(
+        _.map(fields => JObject(fields.toMap)).getOrElse(emptyObject)
+      )
+
+      ws >> open >> ws >> body << close << ws
+    }
+
+    def jValue: Parser[JSON] = jLiteral | jArray | jObject
+
+    jObject
   }
 }
