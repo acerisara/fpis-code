@@ -27,22 +27,15 @@ trait Foldable[F[_]] {
   def concatenate[A](as: F[A])(m: Monoid[A]): A =
     foldLeft(as)(m.zero)(m.op)
 
-  def toList[A](fa: F[A]): List[A] = foldRight(fa)(List.empty[A])(_ :: _)
+  def toList[A](fa: F[A]): List[A] =
+    foldLeft(fa)(List.empty[A])((b, a) => a :: b)
 }
 
 object Foldable {
 
   val foldableList: Foldable[List] = new Foldable[List] {
-    override def foldRight[A, B](as: List[A])(acc: B)(f: (A, B) => B): B =
-      as.foldRight(acc)(f)
-
-    override def foldLeft[A, B](as: List[A])(acc: B)(f: (B, A) => B): B =
-      as.foldLeft(acc)(f)
-
     override def foldMap[A, B](as: List[A])(f: A => B)(m: Monoid[B]): B =
       as.foldLeft(m.zero)((b, a) => m.op(b, f(a)))
-
-    override def toList[A](as: List[A]): List[A] = as
   }
 
   val foldableIndexedSeq: Foldable[IndexedSeq] = new Foldable[IndexedSeq] {
