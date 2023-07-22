@@ -28,7 +28,7 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
     def map2[A, B, C](m1: M, m2: M)(f: (A, B) => C): M = M.op(m1, m2)
   }
 
-  def foldMap[A, M](as: F[A])(f: A => M)(mb: Monoid[M]): M = {
+  override def foldMap[A, M](as: F[A])(f: A => M)(mb: Monoid[M]): M = {
     traverse[({ type f[x] = Const[M, x] })#f, A, Nothing](as)(f) {
       monoidApplicative(mb)
     }
@@ -40,7 +40,7 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
   def zipWithIndex[A](fa: F[A]): F[(A, Int)] =
     mapAccum(fa, 0)((a, s) => ((a, s), s + 1))._1
 
-  def toList[A](fa: F[A]): List[A] =
+  override def toList[A](fa: F[A]): List[A] =
     mapAccum(fa, List.empty[A])((a, s) => ((), a :: s))._2
 
   def mapAccum[S, A, B](fa: F[A], s: S)(f: (A, S) => (B, S)): (F[B], S) =

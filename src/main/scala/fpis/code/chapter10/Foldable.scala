@@ -1,14 +1,33 @@
 package fpis.code.chapter10
 
+import fpis.code.chapter10.Monoid.{dual, endoMonoid}
 import fpis.code.chapter3.{Branch, Leaf, Tree}
 
 trait Foldable[F[_]] {
-  // TODO: Write everything in terms of foldMap
-  def foldRight[A, B](as: F[A])(z: B)(f: (A, B) => B): B
-  def foldLeft[A, B](as: F[A])(z: B)(f: (B, A) => B): B
-  def foldMap[A, B](as: F[A])(f: A => B)(mb: Monoid[B]): B
-  def concatenate[A](as: F[A])(m: Monoid[A]): A = foldLeft(as)(m.zero)(m.op)
-  def toList[A](fa: F[A]): List[A]
+  def foldRight[A, B](as: F[A])(z: B)(f: (A, B) => B): B = {
+    // A => (B => B)
+    val fCurried = f.curried
+    // Monoid to fold B => B via function composition
+    val m = endoMonoid[B]
+    foldMap(as)(fCurried)(m)(z)
+  }
+
+  def foldLeft[A, B](as: F[A])(z: B)(f: (B, A) => B): B = {
+    // We simply flip the arguments of f here and curry like in foldRight
+    val g = (a: A, b: B) => f(b, a)
+    val gCurried = g.curried
+    // But we also need to flip the monoid
+    val m = dual(endoMonoid[B])
+    foldMap(as)(gCurried)(m)(z)
+  }
+
+  def foldMap[A, B](as: F[A])(f: A => B)(mb: Monoid[B]): B =
+    foldRight(as)(mb.zero)((a, b) => mb.op(f(a), b))
+
+  def concatenate[A](as: F[A])(m: Monoid[A]): A =
+    foldLeft(as)(m.zero)(m.op)
+
+  def toList[A](fa: F[A]): List[A] = foldRight(fa)(List.empty[A])(_ :: _)
 }
 
 object Foldable {

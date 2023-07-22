@@ -51,8 +51,14 @@ object Monoid {
   }
 
   def endoMonoid[A]: Monoid[A => A] = new Monoid[A => A] {
-    override def op(f: A => A, g: A => A): A => A = f.andThen(g)
+    // We have the option of going either f(g) or g(f)
+    override def op(f: A => A, g: A => A): A => A = f andThen g
     override def zero: A => A = a => a
+  }
+
+  def dual[A](m: Monoid[A]): Monoid[A] = new Monoid[A] {
+    def op(x: A, y: A): A = m.op(y, x)
+    val zero: A = m.zero
   }
 
   def functionMonoid[A, B](b: Monoid[B]): Monoid[A => B] =
