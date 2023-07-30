@@ -123,7 +123,7 @@ class MyParserTest extends AnyFunSuite {
         |}""".stripMargin) should be(
       obj(
         Map(
-          "a" -> JObject(
+          "a" -> obj(
             Map(
               "b" -> JNumber(1),
               "c" -> JBool(true)

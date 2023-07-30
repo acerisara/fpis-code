@@ -73,11 +73,15 @@ object Traverse {
 
   val listTraverse: Traverse[List] = new Traverse[List] {
     override def map[A, B](fa: List[A])(f: A => B): List[B] = fa.map(f)
+
     override def foldRight[A, B](as: List[A])(z: B)(f: (A, B) => B): B =
       as.foldRight(z)(f)
+
     override def foldLeft[A, B](as: List[A])(z: B)(f: (B, A) => B): B =
       as.foldLeft(z)(f)
+
     override def toList[A](fa: List[A]): List[A] = fa
+
     override def traverse[M[_], A, B](as: List[A])(f: A => M[B])(implicit
         M: Applicative[M]
     ): M[List[B]] =
@@ -86,18 +90,24 @@ object Traverse {
 
   val optionTraverse: Traverse[Option] = new Traverse[Option] {
     override def map[A, B](fa: Option[A])(f: A => B): Option[B] = fa.map(f)
+
     override def foldRight[A, B](as: Option[A])(z: B)(f: (A, B) => B): B =
       as.foldRight(z)(f)
+
     override def foldLeft[A, B](as: Option[A])(z: B)(f: (B, A) => B): B =
       as.foldLeft(z)(f)
+
     override def toList[A](fa: Option[A]): List[A] = fa.toList
   }
 
   val treeTraverse: Traverse[Tree] = new Traverse[Tree] {
     override def map[A, B](fa: Tree[A])(f: A => B): Tree[B] =
       Tree(f(fa.head), fa.tail.map(map(_)(f)))
+
     override def foldRight[A, B](as: Tree[A])(z: B)(f: (A, B) => B): B = ???
+
     override def foldLeft[A, B](as: Tree[A])(z: B)(f: (B, A) => B): B = ???
+
     override def toList[A](fa: Tree[A]): List[A] = ???
   }
 

@@ -2,6 +2,10 @@ package fpis.code.chapter9
 
 trait JSON
 
+// TODO:
+//  - Improve error message
+//  - Improve API readability
+//  - Test coverage
 object JSON {
   case object JNull extends JSON
   case class JNumber(get: Double) extends JSON
