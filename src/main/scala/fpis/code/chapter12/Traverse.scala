@@ -72,43 +72,36 @@ object Traverse {
   case class Tree[+A](head: A, tail: List[Tree[A]])
 
   val listTraverse: Traverse[List] = new Traverse[List] {
-    override def map[A, B](fa: List[A])(f: A => B): List[B] = fa.map(f)
-
-    override def foldRight[A, B](as: List[A])(z: B)(f: (A, B) => B): B =
-      as.foldRight(z)(f)
-
-    override def foldLeft[A, B](as: List[A])(z: B)(f: (B, A) => B): B =
-      as.foldLeft(z)(f)
-
-    override def toList[A](fa: List[A]): List[A] = fa
+    override def map[A, B](as: List[A])(f: A => B): List[B] = as.map(f)
 
     override def traverse[M[_], A, B](as: List[A])(f: A => M[B])(implicit
         M: Applicative[M]
     ): M[List[B]] =
-      as.foldRight(M.unit(List[B]()))((a, fbs) => M.map2(f(a), fbs)(_ :: _))
+      as.foldRight(M.unit(List.empty[B]))((a, mb) => M.map2(f(a), mb)(_ :: _))
   }
 
   val optionTraverse: Traverse[Option] = new Traverse[Option] {
-    override def map[A, B](fa: Option[A])(f: A => B): Option[B] = fa.map(f)
+    override def map[A, B](oa: Option[A])(f: A => B): Option[B] = oa.map(f)
 
-    override def foldRight[A, B](as: Option[A])(z: B)(f: (A, B) => B): B =
-      as.foldRight(z)(f)
-
-    override def foldLeft[A, B](as: Option[A])(z: B)(f: (B, A) => B): B =
-      as.foldLeft(z)(f)
-
-    override def toList[A](fa: Option[A]): List[A] = fa.toList
+    override def traverse[M[_], A, B](
+        oa: Option[A]
+    )(f: A => M[B])(implicit M: Applicative[M]): M[Option[B]] = oa match {
+      case Some(v) => M.map(f(v))(Some(_))
+      case None    => M.unit(None)
+    }
   }
 
   val treeTraverse: Traverse[Tree] = new Traverse[Tree] {
-    override def map[A, B](fa: Tree[A])(f: A => B): Tree[B] =
-      Tree(f(fa.head), fa.tail.map(map(_)(f)))
+    override def map[A, B](ta: Tree[A])(f: A => B): Tree[B] =
+      Tree(f(ta.head), ta.tail.map(map(_)(f)))
 
-    override def foldRight[A, B](as: Tree[A])(z: B)(f: (A, B) => B): B = ???
-
-    override def foldLeft[A, B](as: Tree[A])(z: B)(f: (B, A) => B): B = ???
-
-    override def toList[A](fa: Tree[A]): List[A] = ???
+    override def traverse[M[_], A, B](ta: Tree[A])(f: A => M[B])(implicit
+        M: Applicative[M]
+    ): M[Tree[B]] = {
+      M.map2(f(ta.head), listTraverse.traverse(ta.tail)(traverse(_)(f)))(
+        Tree(_, _)
+      )
+    }
   }
 
 }

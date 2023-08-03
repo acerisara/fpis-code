@@ -52,6 +52,17 @@ trait Applicative[F[_]] extends Functor[F] {
 
 object Applicative {
 
+  val optionApplicative: Applicative[Option] = new Applicative[Option] {
+    override def map2[A, B, C](oa: Option[A], ob: Option[B])(
+        f: (A, B) => C
+    ): Option[C] = (oa, ob) match {
+      case (Some(a), Some(b)) => Some(f(a, b))
+      case _                  => None
+    }
+
+    override def unit[A](a: => A): Option[A] = Some(a)
+  }
+
   def product[F[_], G[_]](
       F: Applicative[F],
       G: Applicative[G]

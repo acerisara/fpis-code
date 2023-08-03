@@ -1,5 +1,6 @@
 package fpis.code.chapter12
 
+import fpis.code.chapter12.Traverse.Tree
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be
@@ -9,28 +10,42 @@ import org.scalatestplus.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TraverseTest extends AnyFunSuite {
 
-  private val lt = Traverse.listTraverse
+  private val listTraverse = Traverse.listTraverse
+  private val treeTraverse = Traverse.treeTraverse
 
-  test("Traverse.zipWithIndex") {
-    lt.zipWithIndex(List.empty) should be(List.empty)
-    lt.zipWithIndex(List("a", "b", "c")) should be(
-      List(("a", 0), ("b", 1), ("c", 2))
+  implicit val optionApplicative: Applicative[Option] =
+    Applicative.optionApplicative
+
+  test("List traverse") {
+    listTraverse.traverse(List.empty[Int])(a => Option(a)) should be(
+      Some(List.empty)
+    )
+
+    listTraverse.traverse(List(1, 2, 3))(a => Option(a)) should be(
+      Some(List(1, 2, 3))
+    )
+
+    listTraverse.sequence(List.empty[Option[Int]]) should be(
+      Some(List.empty)
+    )
+
+    listTraverse.sequence(List(Option(1), Option(2), Option(3))) should be(
+      Some(List(1, 2, 3))
     )
   }
 
-  test("Traverse.toList") {
-    lt.toList(List.empty) should be(List.empty)
-    lt.toList(List("a", "b", "c")) should be(
-      List("a", "b", "c")
+  test("Tree traverse") {
+    val tree = Tree(1, List(Tree(2, List(Tree(3, List.empty)))))
+
+    treeTraverse.traverse(tree)(a => Option(a)) should be(
+      Some(Tree(1, List(Tree(2, List(Tree(3, List.empty))))))
     )
-  }
 
-  test("Traverse.reverse") {
-    lt.reverse(List(1, 2, 3)) should be(List(3, 2, 1))
-  }
+    val optionTree = treeTraverse.map(tree)(Option(_))
 
-  test("Traverse.foldLeft") {
-    lt.foldLeft(List(1, 2, 3))(0)(_ + _) should be(6)
+    treeTraverse.sequence(optionTree) should be(
+      Some(Tree(1, List(Tree(2, List(Tree(3, List.empty))))))
+    )
   }
 
 }
