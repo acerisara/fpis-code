@@ -20,11 +20,6 @@ object List {
     case Cons(x, xs) => x * product(xs)
   }
 
-  // This implementation is not stack-safe
-  def apply_[A](as: A*): List[A] = // variadic function syntax
-    if (as.isEmpty) Nil
-    else Cons(as.head, apply_(as.tail: _*))
-
   def apply[A](as: A*): List[A] =
     as.reverse.foldLeft(Nil: List[A])((b, a) => Cons(a, b))
 

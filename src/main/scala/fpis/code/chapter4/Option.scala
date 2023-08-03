@@ -65,7 +65,7 @@ object Option {
       case Nil => Some(List.empty)
       case oa :: oas =>
         for {
-          as <- sequence(oas)
+          as <- sequenceP(oas)
           a <- oa
         } yield a :: as
     }
@@ -83,9 +83,9 @@ object Option {
     sequence(a map (i => Try(i.toInt)))
 
   def traverse[A, B](as: List[A])(f: A => Option[B]): Option[List[B]] =
-    as.foldLeft(Some(List.empty[B]): Option[List[B]])((oas, a) =>
+    as.foldLeft(Some(List.empty[B]): Option[List[B]]) { (oas, a) =>
       map2(oas, f(a))(_ :+ _)
-    )
+    }
 
   def sequenceT[A](oas: List[Option[A]]): Option[List[A]] =
     traverse(oas)(oa => oa)
