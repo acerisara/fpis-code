@@ -3,22 +3,24 @@ package fpis.code.chapter12
 import fpis.code.chapter11.Functor
 
 trait Applicative[F[_]] extends Functor[F] {
-  // Minimal sets of combinators:
-  // 1. map2, unit
-  // 2. apply, unit
 
-  def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C]
+  /** Minimal set of primitives:
+    *
+    *   - map2, unit
+    *   - apply, unit
+    *
+    * A minimal implementation of Applicative must implement unit and override
+    * either apply or map2.
+    */
+
   def unit[A](a: => A): F[A]
+
+  def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
+    apply(apply(unit(f.curried))(fa))(fb)
 
   def apply[A, B](fab: F[A => B])(fa: F[A]): F[B] =
     map2(fab, fa)((f, a) => f(a))
 
-  def map2A[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
-    apply(apply(unit(f.curried))(fa))(fb)
-
-  def mapA[A, B](fa: F[A])(f: A => B): F[B] = apply(unit(f))(fa)
-
-  // derived combinators
   override def map[A, B](fa: F[A])(f: A => B): F[B] =
     map2(fa, unit(()))((a, _) => f(a))
 

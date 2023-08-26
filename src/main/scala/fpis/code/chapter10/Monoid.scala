@@ -87,6 +87,7 @@ object Monoid {
     override def op(pa1: Par[A], pa2: Par[A]): Par[A] = Par.map2(pa1, pa2) {
       (a1, a2) => m.op(a1, a2)
     }
+
     override def zero: Par[A] = Par.unit(m.zero)
   }
 

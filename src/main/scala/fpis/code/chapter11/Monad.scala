@@ -9,13 +9,16 @@ import fpis.code.chapter9.MyParser.Parser
 import fpis.code.chapter9.Parsers
 
 trait Monad[F[_]] extends Applicative[F] {
-  // Minimal sets of combinators:
-  // 1. flatMap, unit
-  // 2. compose, unit
-  // 3. map, unit and join
 
-  // A minimal implementation of Monad must implement unit
-  // and override either flatMap or join and map
+  /** Minimal set of primitives:
+    *
+    *   - flatMap, unit
+    *   - compose, unit
+    *   - map, unit and join
+    *
+    * A minimal implementation of Monad must implement unit and override either
+    * flatMap or join and map.
+    */
 
   def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B] = join(map(fa)(f))
 

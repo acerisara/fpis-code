@@ -25,7 +25,7 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
   ] = new Applicative[({ type f[x] = Const[M, x] })#f] {
     def unit[A](a: => A): M = M.zero
 
-    def map2[A, B, C](m1: M, m2: M)(f: (A, B) => C): M = M.op(m1, m2)
+    override def map2[A, B, C](m1: M, m2: M)(f: (A, B) => C): M = M.op(m1, m2)
   }
 
   override def foldMap[A, M](as: F[A])(f: A => M)(mb: Monoid[M]): M = {
@@ -40,9 +40,6 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
   def zipWithIndex[A](fa: F[A]): F[(A, Int)] =
     mapAccum(fa, 0)((a, s) => ((a, s), s + 1))._1
 
-  override def toList[A](fa: F[A]): List[A] =
-    mapAccum(fa, List.empty[A])((a, s) => ((), a :: s))._2
-
   def mapAccum[S, A, B](fa: F[A], s: S)(f: (A, S) => (B, S)): (F[B], S) =
     traverseS(fa)((a: A) =>
       for {
@@ -54,9 +51,6 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
 
   def reverse[A](fa: F[A]): F[A] =
     mapAccum(fa, toList(fa).reverse)((_, s) => (s.head, s.tail))._1
-
-  override def foldLeft[A, B](fa: F[A])(z: B)(f: (B, A) => B): B =
-    mapAccum(fa, z)((a, b) => ((), f(b, a)))._2
 
   def fuse[G[_], H[_], A, B](fa: F[A])(f: A => G[B], g: A => H[B])(
       G: Applicative[G],
