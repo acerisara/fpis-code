@@ -38,7 +38,7 @@ object JSON {
     val ws = (space | linefeed | carriageReturn | horizontalTab).many
       .map(_ => ())
 
-    val jString = (quote >> chars << quote).map(JString)
+    val jString = (quote ~> chars <~ quote).map(JString)
 
     val jNumber = regex("(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?".r)
       .map(_.toDouble)
@@ -46,16 +46,15 @@ object JSON {
 
     val jNull = string("null").map(_ => JNull)
 
-    val jBoolTrue = string("true").map(_ => JBool(true))
-    val jBoolFalse = string("false").map(_ => JBool(false))
-    val jBool = jBoolTrue | jBoolFalse
+    val jBool = string("true").map(_ => JBool(true)) |
+      string("false").map(_ => JBool(false))
 
     val jLiteral = jString | jNumber | jNull | jBool
 
     def jValue: Parser[JSON] = jLiteral | jArray | jObject
 
     def jArray: Parser[JArray] = {
-      val jValues = (comma >> ws >> jValue).many
+      val jValues = (comma ~> ws ~> jValue).many
 
       val values =
         (jValue ++ jValues)
@@ -64,18 +63,18 @@ object JSON {
           .opt
           .map(_.getOrElse(emptyArray))
 
-      squareBracketOpen >> values << squareBracketClosed
+      squareBracketOpen ~> values <~ squareBracketClosed
     }
 
     def jField: Parser[(String, JSON)] =
-      jString.map(_.get) ** (colon >> ws >> jValue << comma.opt << ws)
+      jString.map(_.get) ** (colon ~> ws ~> jValue <~ comma.opt <~ ws)
 
     def jObject: Parser[JObject] = {
       val body = jField.many.opt.map(
         _.map(fields => JObject(fields.toMap)).getOrElse(emptyObject)
       )
 
-      ws >> curlyBracketOpen >> ws >> body << ws << curlyBracketClosed << ws
+      ws ~> curlyBracketOpen ~> ws ~> body <~ ws <~ curlyBracketClosed <~ ws
     }
 
     jObject
