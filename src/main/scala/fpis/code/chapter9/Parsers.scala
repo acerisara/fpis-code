@@ -32,7 +32,7 @@ case class ParseError(stack: List[(Location, String)]) {
 
   def latest: Option[(Location, String)] = stack.lastOption
 
-  def trace(): String = {
+  def trace: String = {
     val trace = stack.zipWithIndex
       .map { case (elem, i) =>
         val prefix = s"${"-" * (i + 1)}>"

@@ -17,12 +17,12 @@ class MyParserTest extends AnyFunSuite {
   def parse(json: String): JSON =
     myParser
       .run(jsonParser)(json)
-      .fold(e => throw new Exception(e.trace()), identity)
+      .fold(e => throw new Exception(e.trace), identity)
 
   def parseInvalid(json: String): String =
     myParser
       .run(jsonParser)(json)
-      .fold(_.trace(), _ => throw new Exception())
+      .fold(_.trace, _ => throw new Exception())
 
   def obj(fields: Map[String, JSON]): JSON = JObject(fields)
 
