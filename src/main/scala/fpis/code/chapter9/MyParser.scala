@@ -1,6 +1,7 @@
 package fpis.code.chapter9
 
 import fpis.code.chapter9.MyParser.Parser
+import fpis.code.chapter9.Parsers.escape
 
 import scala.Function.tupled
 import scala.language.implicitConversions
@@ -58,7 +59,12 @@ class MyParser extends Parsers[Parser] {
       if (s.length == commonPrefix) {
         Success(s, s.length)
       } else
-        Failure(location.toError(s"expected: ($s)"), commonPrefix != 0)
+        Failure(
+          location.toError(
+            s"toParse=`${escape(location.toParse)}`,expected=`$s`"
+          ),
+          commonPrefix != 0
+        )
     }
 
   override implicit def regex(r: Regex): Parser[String] =
@@ -66,7 +72,7 @@ class MyParser extends Parsers[Parser] {
       r.findPrefixOf(location.toParse) match {
         case None =>
           Failure(
-            location.toError(s"expected string matching: ($r)"),
+            location.toError(s"expected string matching: `$r`"),
             isCommitted = false
           )
         case Some(m) => Success(m, m.length)

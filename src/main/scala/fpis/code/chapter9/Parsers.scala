@@ -2,6 +2,7 @@ package fpis.code.chapter9
 
 import fpis.code.chapter8.Prop.forAll
 import fpis.code.chapter8.{Gen, Prop}
+import fpis.code.chapter9.Parsers.{escape, lineSep}
 
 import scala.language.implicitConversions
 import scala.util.matching.Regex
@@ -30,6 +31,19 @@ case class ParseError(stack: List[(Location, String)]) {
   def latestLocation: Option[Location] = latest.map(_._1)
 
   def latest: Option[(Location, String)] = stack.lastOption
+
+  def trace(): String = {
+    val trace = stack.zipWithIndex
+      .map { case (elem, i) =>
+        val prefix = s"${"-" * (i + 1)}>"
+        s"$prefix offset=${elem._1.offset} `${escape(
+            elem._1.toParse.headOption.map(_.toString).getOrElse("")
+          )}`: ${elem._2}"
+      }
+      .mkString(lineSep)
+
+    s"$lineSep$trace"
+  }
 
 }
 
@@ -130,5 +144,16 @@ trait Parsers[Parser[+_]] { self =>
         run(succeed(a))(s) == Right(a)
       }
   }
+
+}
+
+object Parsers {
+
+  val tab: String = "\t"
+  val lineSep: String = sys.props("line.separator")
+
+  def escape(s: String): String =
+    s.replaceAll(lineSep, "\\\\n")
+      .replaceAll(tab, "\\\\t")
 
 }

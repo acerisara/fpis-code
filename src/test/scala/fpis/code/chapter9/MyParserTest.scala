@@ -15,10 +15,14 @@ class MyParserTest extends AnyFunSuite {
   val jsonParser: Parser[JSON] = JSON.jsonParser(myParser)
 
   def parse(json: String): JSON =
-    myParser.run(jsonParser)(json) match {
-      case Left(e)  => throw new Exception(e.toString)
-      case Right(v) => v
-    }
+    myParser
+      .run(jsonParser)(json)
+      .fold(e => throw new Exception(e.trace()), identity)
+
+  def parseInvalid(json: String): String =
+    myParser
+      .run(jsonParser)(json)
+      .fold(_.trace(), _ => throw new Exception())
 
   def obj(fields: Map[String, JSON]): JSON = JObject(fields)
 
@@ -131,6 +135,33 @@ class MyParserTest extends AnyFunSuite {
           )
         )
       )
+    )
+  }
+
+  test("Error message") {
+    parseInvalid("""/""".stripMargin) should be(
+      """
+        |-> offset=0 `/`: jObject
+        |--> offset=0 `/`: toParse=`/`,expected=`{`""".stripMargin
+    )
+
+    parseInvalid("""{
+        |,
+        |""".stripMargin) should be(
+      """
+        |-> offset=0 `{`: jObject
+        |--> offset=2 `,`: toParse=`,\n`,expected=`}`""".stripMargin
+    )
+
+    parseInvalid("""{
+        |  "aField": TEST
+        |""".stripMargin) should be(
+      """
+        |-> offset=0 `{`: jObject
+        |--> offset=4 `"`: jField
+        |---> offset=14 `T`: jValue
+        |----> offset=14 `T`: jObject
+        |-----> offset=14 `T`: toParse=`TEST\n`,expected=`{`""".stripMargin
     )
   }
 

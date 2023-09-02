@@ -3,8 +3,6 @@ package fpis.code.chapter9
 trait JSON
 
 // TODO:
-//  - Improve error message
-//  - Improve API readability
 //  - Test coverage
 object JSON {
   case object JNull extends JSON
@@ -49,9 +47,9 @@ object JSON {
     val jBool = string("true").map(_ => JBool(true)) |
       string("false").map(_ => JBool(false))
 
-    val jLiteral = jString | jNumber | jNull | jBool
+    val jLiteral = scope("jLiteral")(jString | jNumber | jNull | jBool)
 
-    def jValue: Parser[JSON] = jLiteral | jArray | jObject
+    def jValue: Parser[JSON] = scope("jValue")(jLiteral | jArray | jObject)
 
     def jArray: Parser[JArray] = {
       val jValues = (comma ~> ws ~> jValue).many
@@ -67,14 +65,18 @@ object JSON {
     }
 
     def jField: Parser[(String, JSON)] =
-      jString.map(_.get) ** (colon ~> ws ~> jValue <~ comma.opt <~ ws)
+      scope("jField")(
+        jString.map(_.get) ** (colon ~> ws ~> jValue <~ comma.opt <~ ws)
+      )
 
     def jObject: Parser[JObject] = {
       val body = jField.many.opt.map(
         _.map(fields => JObject(fields.toMap)).getOrElse(emptyObject)
       )
 
-      ws ~> curlyBracketOpen ~> ws ~> body <~ ws <~ curlyBracketClosed <~ ws
+      scope("jObject")(
+        ws ~> curlyBracketOpen ~> ws ~> body <~ ws <~ curlyBracketClosed <~ ws
+      )
     }
 
     jObject
