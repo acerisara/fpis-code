@@ -90,15 +90,15 @@ sealed abstract class STArray[S, A: Manifest] {
 }
 
 object STArray {
-  def apply[S, A: Manifest](sz: Int, v: A): ST[S, STArray[S, A]] = ST(
+  def apply[S, A: Manifest](sz: Int, a: A): ST[S, STArray[S, A]] = ST(
     new STArray[S, A] {
-      lazy val array: Array[A] = Array.fill(sz)(v)
+      lazy val array: Array[A] = Array.fill(sz)(a)
     }
   )
 
-  def fromList[S, A: Manifest](xs: List[A]): ST[S, STArray[S, A]] =
+  def fromList[S, A: Manifest](as: List[A]): ST[S, STArray[S, A]] =
     ST(new STArray[S, A] {
-      lazy val array: Array[A] = xs.toArray
+      lazy val array: Array[A] = as.toArray
     })
 }
 
@@ -106,11 +106,11 @@ sealed abstract class STMap[S, K, V] {
   protected def table: scala.collection.mutable.HashMap[K, V]
   def size: ST[S, Int] = ST(table.size)
 
-  def get(k: K): ST[S, Option[V]] = ST(table.get(k))
+  def get(key: K): ST[S, Option[V]] = ST(table.get(key))
 
-  def put(k: K, v: V): ST[S, Unit] = new ST[S, Unit] {
+  def put(key: K, value: V): ST[S, Unit] = new ST[S, Unit] {
     def run(s: S): (Unit, S) = {
-      table.put(k, v)
+      table.put(key, value)
       ((), s)
     }
   }
