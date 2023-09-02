@@ -149,7 +149,8 @@ object Process {
       IO(io.Source.fromFile(filename))
     } { src =>
       lazy val iterator = src.getLines()
-      def step: Option[String] = if (iterator.hasNext) Some(iterator.next()) else None
+      def step: Option[String] =
+        if (iterator.hasNext) Some(iterator.next()) else None
 
       lazy val lines: Process[IO, String] = eval(IO(step)).flatMap {
         case None       => Halt(End)
