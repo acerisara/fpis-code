@@ -16,38 +16,37 @@ object Par {
   def unit[A](a: A): Par[A] = (_: ExecutorService) => UnitFuture(a)
 
   def map2[A, B, C](pa: Par[A], pb: Par[B])(f: (A, B) => C): Par[C] =
-    (es: ExecutorService) => {
+    es => {
       val af = pa(es)
       val bf = pb(es)
       UnitFuture(f(af.get, bf.get))
     }
 
-  def fork[A](pa: => Par[A]): Par[A] = es =>
-    es.submit(new Callable[A] {
-      def call: A = pa(es).get
-    })
+  def fork[A](pa: => Par[A]): Par[A] =
+    es => {
+      es.submit(new Callable[A] {
+        def call: A = pa(es).get
+      })
+    }
 
   def lazyUnit[A](a: => A): Par[A] = fork(unit(a))
 
-  def run[A](es: ExecutorService)(a: Par[A]): Future[A] = a(es)
+  def run[A](es: ExecutorService)(pa: Par[A]): Future[A] = pa(es)
 
   def asyncF[A, B](f: A => B): A => Par[B] = a => lazyUnit(f(a))
 
   def sortPar(parList: Par[List[Int]]): Par[List[Int]] =
-    map2(parList, unit(()))((a, _) => a.sorted)
+    map(parList)(_.sorted)
 
   def map[A, B](pa: Par[A])(f: A => B): Par[B] =
     map2(pa, unit(()))((a, _) => f(a))
 
-  def sortParM(parList: Par[List[Int]]): Par[List[Int]] = map(parList)(_.sorted)
-
   def parMap[A, B](as: List[A])(f: A => B): Par[List[B]] = fork {
-    val pbs: List[Par[B]] = as.map(asyncF(f))
-    sequence(pbs)
+    sequence(as.map(asyncF(f)))
   }
 
   def sequence[A](pas: List[Par[A]]): Par[List[A]] =
-    pas.foldRight(unit(List.empty[A]))((pa, ps) => map2(pa, ps)(_ :: _))
+    pas.foldRight(unit(List.empty[A]))((pa, pas) => map2(pa, pas)(_ :: _))
 
   def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] = {
     val pbs = sequence(as.map(asyncF(f)))
@@ -60,6 +59,7 @@ object Par {
   def choiceN[A](n: Par[Int])(choices: List[Par[A]]): Par[A] =
     chooser(n)(choices(_))
 
+  // `chooser` is generally called `flatMap`
   def chooser[A, B](pa: Par[A])(choices: A => Par[B]): Par[B] =
     es => {
       val a = run(es)(pa).get()
@@ -74,9 +74,6 @@ object Par {
 
   def flatMap[A, B](a: Par[A])(f: A => Par[B]): Par[B] = join(map(a)(f))
 
-  def joinF[A](a: Par[Par[A]]): Par[A] = flatMap(a)(a => a)
-
-  def equal[A](p: Par[A], p2: Par[A]): Par[Boolean] =
-    Par.map2(p, p2)(_ == _)
+  def equal[A](p: Par[A], p2: Par[A]): Par[Boolean] = Par.map2(p, p2)(_ == _)
 
 }

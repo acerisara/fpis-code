@@ -40,11 +40,8 @@ class ParTest extends AnyFunSuite {
   }
 
   test("Par.sortPar") {
-    val p1 = sortPar(unit(List(5, 4, 3, 2, 1)))
-    p1(es).get() should be(List(1, 2, 3, 4, 5))
-
-    val p2 = sortParM(unit(List(5, 4, 3, 2, 1)))
-    p2(es).get() should be(List(1, 2, 3, 4, 5))
+    val p = sortPar(unit(List(5, 4, 3, 2, 1)))
+    p(es).get() should be(List(1, 2, 3, 4, 5))
   }
 
   test("Par.parMap") {
