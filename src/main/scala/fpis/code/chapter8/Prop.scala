@@ -9,16 +9,16 @@ import java.util.concurrent.{ExecutorService, Executors}
 
 case class Prop(run: (MaxSize, TestCases, RNG) => Result) {
 
-  private def &&(p: Prop): Prop = Prop { (m, n, rng) =>
-    run(m, n, rng) match {
-      case Passed | Proved => p.run(m, n, rng)
+  private def &&(p: Prop): Prop = Prop { (max, n, rng) =>
+    run(max, n, rng) match {
+      case Passed | Proved => p.run(max, n, rng)
       case x               => x
     }
   }
 
-  def ||(p: Prop): Prop = Prop { (m, n, rng) =>
-    run(m, n, rng) match {
-      case Falsified(_, _) => p.run(m, n, rng)
+  def ||(p: Prop): Prop = Prop { (max, n, rng) =>
+    run(max, n, rng) match {
+      case Falsified(_, _) => p.run(max, n, rng)
       case x               => x
     }
   }
@@ -64,13 +64,13 @@ object Prop {
       .getOrElse(Passed)
   }
 
-  def forAll[A](g: SGen[A])(f: A => Boolean): Prop = forAll(g.forSize)(f)
+  def forAll[A](g: SGen[A])(f: A => Boolean): Prop = forAll(g.g)(f)
 
   def forAll[A](g: Int => Gen[A])(f: A => Boolean): Prop = Prop {
     (max, n, rng) =>
       val casesPerSize = (n + (max - 1)) / max
       val props: LazyList[Prop] =
-        LazyList.from(0).take((n min max) + 1).map(i => forAll(g(i))(f))
+        LazyList.from(0).take(n.min(max) + 1).map(i => forAll(g(i))(f))
 
       val prop: Prop =
         props
@@ -92,13 +92,13 @@ object Prop {
   private def randomStream[A](g: Gen[A])(rng: RNG): LazyList[A] =
     LazyList.unfold(rng)(rng => Some(g.sample.run(rng)))
 
-  val S: Gen[ExecutorService] = weighted(
+  val executorService: Gen[ExecutorService] = weighted(
     choose(1, 4).map(Executors.newFixedThreadPool) -> .75,
     Gen.unit(Executors.newCachedThreadPool) -> .25
   )
 
   def forAllPar[A](g: Gen[A])(f: A => Par[Boolean]): Prop =
-    forAll(S ** g) { case (s, a) => f(a)(s).get }
+    forAll(executorService ** g) { case (s, a) => f(a)(s).get }
 
   private def buildMsg[A](s: A, e: Exception): String =
     s"test case: $s\n" +

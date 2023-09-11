@@ -7,24 +7,18 @@ case class Gen[+A](sample: State[RNG, A]) {
   def map[B](f: A => B): Gen[B] = Gen(sample.map(f))
 
   def map2[B, C](gb: Gen[B])(f: (A, B) => C): Gen[C] =
-    for {
-      a <- this
-      b <- gb
-    } yield f(a, b)
+    Gen(sample.map2(gb.sample)(f))
 
   def flatMap[B](f: A => Gen[B]): Gen[B] =
     Gen(sample.flatMap(a => f(a).sample))
 
   def listOfN(size: Gen[Int]): Gen[List[A]] =
-    size.flatMap(n => Gen.listOfN(n, this))
+    size.flatMap(n => this.listOfN(n))
 
-  def listOfN(n: Int): Gen[List[A]] =
-    Gen.listOfN(n, this)
+  def listOfN(size: Int): Gen[List[A]] =
+    Gen.listOfN(size, this)
 
-  def unsized: SGen[A] = SGen(_ => this)
-
-  def **[B](g: Gen[B]): Gen[(A, B)] =
-    (this map2 g)((_, _))
+  def **[B](g: Gen[B]): Gen[(A, B)] = map2(g)((_, _))
 
 }
 
@@ -43,7 +37,7 @@ object Gen {
     Gen(State(SimpleRNG.nonNegativeInt).map(n => n % 2 == 0))
 
   def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] =
-    Gen(State.sequence(List.fill(n)(g.sample)))
+    List.fill(n)(g).foldRight(unit(List[A]()))((a, as) => a.map2(as)(_ :: _))
 
   def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] =
     boolean.flatMap(if (_) g1 else g2)
