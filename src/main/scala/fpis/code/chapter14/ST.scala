@@ -30,8 +30,7 @@ object ST {
     }
   }
 
-  def runST[A](st: RunnableST[A]): A =
-    st.apply[Unit].run(())._1
+  def runST[A](st: RunnableST[A]): A = st[Unit].run(())._1
 
 }
 
