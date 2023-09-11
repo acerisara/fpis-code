@@ -4,6 +4,7 @@ trait JSON
 
 // TODO:
 //  - Test coverage
+//  - Finish parser implementation
 object JSON {
   case object JNull extends JSON
   case class JNumber(get: Double) extends JSON

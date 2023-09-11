@@ -1,13 +1,13 @@
 package fpis.code.chapter9
 
-import fpis.code.chapter9.MyParser.Parser
+import fpis.code.chapter9.DefaultParser.Parser
 import fpis.code.chapter9.Parsers.escape
 
 import scala.Function.tupled
 import scala.language.implicitConversions
 import scala.util.matching.Regex
 
-class MyParser extends Parsers[Parser] {
+class DefaultParser extends Parsers[Parser] {
 
   override def run[A](p: Parser[A])(input: String): Either[ParseError, A] =
     p(Location(input)) match {
@@ -107,7 +107,7 @@ case class Success[+A](get: A, charsConsumed: Int) extends Result[A]
 case class Failure(get: ParseError, isCommitted: Boolean)
     extends Result[Nothing]
 
-object MyParser {
+object DefaultParser {
 
   type Parser[+A] = Location => Result[A]
 

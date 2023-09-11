@@ -5,7 +5,7 @@ import fpis.code.chapter6.State
 import fpis.code.chapter7.Par
 import fpis.code.chapter7.Par.Par
 import fpis.code.chapter8.Gen
-import fpis.code.chapter9.MyParser.Parser
+import fpis.code.chapter9.DefaultParser.Parser
 import fpis.code.chapter9.Parsers
 
 trait Monad[F[_]] extends Applicative[F] {

@@ -1,7 +1,7 @@
 package fpis.code.chapter9
 
 import fpis.code.chapter9.JSON._
-import fpis.code.chapter9.MyParser.Parser
+import fpis.code.chapter9.DefaultParser.Parser
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.be
@@ -9,9 +9,9 @@ import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class MyParserTest extends AnyFunSuite {
+class DefaultParserTest extends AnyFunSuite {
 
-  val myParser = new MyParser
+  val myParser = new DefaultParser
   val jsonParser: Parser[JSON] = JSON.jsonParser(myParser)
 
   def parse(json: String): JSON =
