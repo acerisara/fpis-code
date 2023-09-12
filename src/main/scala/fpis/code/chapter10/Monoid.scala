@@ -51,22 +51,29 @@ object Monoid {
   }
 
   def endoMonoid[A]: Monoid[A => A] = new Monoid[A => A] {
-    // We have the option of going either f(g) or g(f)
-    override def op(f: A => A, g: A => A): A => A = f andThen g
+    // Here we have the option of going either f(g) or g(f)
+    override def op(a1: A => A, a2: A => A): A => A = a1.andThen(a2)
     override def zero: A => A = a => a
   }
 
   def dual[A](m: Monoid[A]): Monoid[A] = new Monoid[A] {
-    def op(x: A, y: A): A = m.op(y, x)
-    val zero: A = m.zero
+    override def op(a1: A, a2: A): A = m.op(a2, a1)
+    override def zero: A = m.zero
   }
 
   def functionMonoid[A, B](b: Monoid[B]): Monoid[A => B] =
     new Monoid[A => B] {
-      override def op(f: A => B, g: A => B): A => B = a => b.op(f(a), g(a))
-
+      override def op(a1: A => B, a2: A => B): A => B = a => b.op(a1(a), a2(a))
       override def zero: A => B = _ => b.zero
     }
+
+  def parMonoid[A](m: Monoid[A]): Monoid[Par[A]] = new Monoid[Par[A]] {
+    override def op(a1: Par[A], a2: Par[A]): Par[A] = Par.map2(a1, a2) {
+      (a1, a2) => m.op(a1, a2)
+    }
+
+    override def zero: Par[A] = Par.unit(m.zero)
+  }
 
   def concatenate[A](as: List[A], m: Monoid[A]): A =
     as.foldLeft(m.zero)(m.op)
@@ -74,34 +81,26 @@ object Monoid {
   def foldMap[A, B](as: List[A], m: Monoid[B])(f: A => B): B =
     as.map(f).foldLeft(m.zero)(m.op)
 
-  def foldMapV[A, B](v: IndexedSeq[A], m: Monoid[B])(f: A => B): B = {
-    if (v.isEmpty) m.zero
-    else if (v.length <= 1) f(v.head)
+  def foldMapV[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): B = {
+    if (as.isEmpty) m.zero
+    else if (as.length <= 1) f(as.head)
     else {
-      val (subL, subR) = v.splitAt(v.length / 2)
+      val (subL, subR) = as.splitAt(as.length / 2)
       m.op(foldMapV(subL, m)(f), foldMapV(subR, m)(f))
     }
   }
 
-  def par[A](m: Monoid[A]): Monoid[Par[A]] = new Monoid[Par[A]] {
-    override def op(pa1: Par[A], pa2: Par[A]): Par[A] = Par.map2(pa1, pa2) {
-      (a1, a2) => m.op(a1, a2)
-    }
+  def parFoldMap[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): Par[B] =
+    foldMapV(as, parMonoid(m))(a => lazyUnit(f(a)))
 
-    override def zero: Par[A] = Par.unit(m.zero)
-  }
-
-  def parFoldMap[A, B](v: IndexedSeq[A], m: Monoid[B])(f: A => B): Par[B] =
-    foldMapV(v, par(m))(a => lazyUnit(f(a)))
-
-  def isOrdered(v: IndexedSeq[Int]): Boolean = {
+  def isOrdered(ints: IndexedSeq[Int]): Boolean = {
     case class Interval(ordered: Boolean, min: Int, max: Int)
 
     val orderedMonoid = new Monoid[Option[Interval]] {
       override def op(
-          oa1: Option[Interval],
-          oa2: Option[Interval]
-      ): Option[Interval] = (oa1, oa2) match {
+          a1: Option[Interval],
+          a2: Option[Interval]
+      ): Option[Interval] = (a1, a2) match {
         case (Some(a1), Some(a2)) =>
           Some(
             Interval(
@@ -117,26 +116,26 @@ object Monoid {
       override def zero: Option[Interval] = None
     }
 
-    foldMapV(v, orderedMonoid)(i => Some(Interval(ordered = true, i, i)))
+    foldMapV(ints, orderedMonoid)(i => Some(Interval(ordered = true, i, i)))
       .forall(_.ordered)
   }
 
-  def productMonoid[A, B](a: Monoid[A], b: Monoid[B]): Monoid[(A, B)] =
+  def productMonoid[A, B](m1: Monoid[A], m2: Monoid[B]): Monoid[(A, B)] =
     new Monoid[(A, B)] {
       override def op(a1: (A, B), a2: (A, B)): (A, B) =
-        (a.op(a1._1, a2._1), b.op(a1._2, a2._2))
+        (m1.op(a1._1, a2._1), m2.op(a1._2, a2._2))
 
-      override def zero: (A, B) = (a.zero, b.zero)
+      override def zero: (A, B) = (m1.zero, m2.zero)
     }
 
-  def mapMergeMonoid[K, V](V: Monoid[V]): Monoid[Map[K, V]] =
+  def mapMergeMonoid[K, V](m: Monoid[V]): Monoid[Map[K, V]] =
     new Monoid[Map[K, V]] {
-      def zero: Map[K, V] = Map[K, V]()
-
-      def op(a: Map[K, V], b: Map[K, V]): Map[K, V] =
-        (a.keySet ++ b.keySet).foldLeft(zero) { (acc, k) =>
-          acc.updated(k, V.op(a.getOrElse(k, V.zero), b.getOrElse(k, V.zero)))
+      override def op(a1: Map[K, V], a2: Map[K, V]): Map[K, V] =
+        (a1.keySet ++ a2.keySet).foldLeft(zero) { (acc, k) =>
+          acc.updated(k, m.op(a1.getOrElse(k, m.zero), a2.getOrElse(k, m.zero)))
         }
+
+      override def zero: Map[K, V] = Map[K, V]()
     }
 
   def bag[A](as: IndexedSeq[A]): Map[A, Int] =
@@ -145,32 +144,15 @@ object Monoid {
   def bagM[A](as: IndexedSeq[A]): Map[A, Int] =
     foldMapV(as, mapMergeMonoid[A, Int](intAdditionMonoid))(a => Map(a -> 1))
 
-  def monoidLaws[A](m: Monoid[A], gen: Gen[A]): Prop = forAll(for {
-    x <- gen
-    y <- gen
-    z <- gen
-  } yield (x, y, z))(p => {
-    // Associativity
-    m.op(p._1, m.op(p._2, p._3)) == m.op(m.op(p._1, p._2), p._3) &&
-    // Identity
-    m.op(p._1, m.zero) == p._1 &&
-    m.op(p._2, m.zero) == p._2 &&
-    m.op(p._3, m.zero) == p._3
-  })
-
-  // TODO: Abstract this
-  def productMonoidLaws[A, B](m: Monoid[(A, B)], g: Gen[(A, B)]): Prop =
+  def monoidLaws[A](m: Monoid[A], gen: Gen[A]): Prop =
     forAll(for {
-      ab1 <- g
-      ab2 <- g
-      ab3 <- g
-    } yield (ab1, ab2, ab3))(p => {
+      x <- gen
+      y <- gen
+      z <- gen
+    } yield (x, y, z))(p => {
       // Associativity
-      m.op(p._1, m.op(p._2, p._3)) == m.op(m.op(p._1, p._2), p._3) &&
-      // Identity
-      m.op(p._1, m.zero) == p._1 &&
-      m.op(p._2, m.zero) == p._2 &&
-      m.op(p._3, m.zero) == p._3
-    })
+      m.op(p._1, m.op(p._2, p._3)) == m.op(m.op(p._1, p._2), p._3)
+    }) && // Identity
+      forAll(gen)((a: A) => m.op(a, m.zero) == a && m.op(m.zero, a) == a)
 
 }

@@ -55,10 +55,7 @@ object Foldable {
 
   val foldableOption: Foldable[Option] = new Foldable[Option] {
     override def foldMap[A, B](as: Option[A])(f: A => B)(m: Monoid[B]): B =
-      as match {
-        case None    => m.zero
-        case Some(a) => f(a)
-      }
+      as.fold(m.zero)(f)
   }
 
 }

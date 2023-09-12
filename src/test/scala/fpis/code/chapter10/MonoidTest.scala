@@ -53,7 +53,7 @@ class MonoidTest extends AnyFunSuite {
   test("Product monoid") {
     val gen = Gen.choose(0, 100)
 
-    val p = productMonoidLaws(
+    val p = monoidLaws(
       productMonoid(intAdditionMonoid, intMultiplicationMonoid),
       gen ** gen
     )

@@ -9,7 +9,7 @@ import java.util.concurrent.{ExecutorService, Executors}
 
 case class Prop(run: (MaxSize, TestCases, RNG) => Result) {
 
-  private def &&(p: Prop): Prop = Prop { (max, n, rng) =>
+  def &&(p: Prop): Prop = Prop { (max, n, rng) =>
     run(max, n, rng) match {
       case Passed | Proved => p.run(max, n, rng)
       case x               => x
