@@ -16,20 +16,6 @@ case class WebForm(name: String, birthdate: LocalDate, phoneNumber: String)
 
 object Validation {
 
-  def eitherMonad[E]: Monad[({ type f[x] = Either[E, x] })#f] = new Monad[
-    ({
-      type f[x] = Either[E, x]
-    })#f
-  ] {
-    override def unit[A](a: => A): Either[E, A] = Right(a)
-    override def flatMap[A, B](
-        fa: Either[E, A]
-    )(f: A => Either[E, B]): Either[E, B] = fa match {
-      case Left(e)  => Left(e)
-      case Right(a) => f(a)
-    }
-  }
-
   def validationApplicative[E]
       : Applicative[({ type f[x] = Validation[E, x] })#f] = new Applicative[
     ({

@@ -72,6 +72,21 @@ object Monad {
     override def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = fa.flatMap(f)
   }
 
+  def eitherMonad[E]: Monad[({ type f[x] = Either[E, x] })#f] = new Monad[
+    ({
+      type f[x] = Either[E, x]
+    })#f
+  ] {
+    override def unit[A](a: => A): Either[E, A] = Right(a)
+
+    override def flatMap[A, B](
+        fa: Either[E, A]
+    )(f: A => Either[E, B]): Either[E, B] = fa match {
+      case Left(e)  => Left(e)
+      case Right(a) => f(a)
+    }
+  }
+
   // Not stack-safe
   val function0Monad: Monad[Function0] = new Monad[Function0] {
     override def unit[A](a: => A): () => A = () => a
