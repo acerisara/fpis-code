@@ -14,16 +14,16 @@ trait Either[+E, +A] {
       case Right(v) => f(v)
     }
 
-  def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] =
+  def orElse[EE >: E, B >: A](default: => Either[EE, B]): Either[EE, B] =
     this match {
-      case Left(_)  => b
+      case Left(_)  => default
       case Right(_) => this
     }
 
-  def map2[EE >: E, B, C](eb: Either[EE, B])(f: (A, B) => C): Either[EE, C] =
+  def map2[EE >: E, B, C](e2: Either[EE, B])(f: (A, B) => C): Either[EE, C] =
     for {
       a <- this
-      b <- eb
+      b <- e2
     } yield f(a, b)
 
 }

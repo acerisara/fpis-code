@@ -16,8 +16,8 @@ sealed trait Option[+A] {
       case Some(x) => x
     }
 
-  def orElse[B >: A](ob: => Option[B]): Option[B] =
-    map(Some(_)).getOrElse(ob)
+  def orElse[B >: A](default: => Option[B]): Option[B] =
+    map(Some(_)).getOrElse(default)
 
   def filter(f: A => Boolean): Option[A] =
     flatMap { a =>
@@ -39,12 +39,12 @@ object Option {
   def variance(xs: Seq[Double]): Option[Double] =
     mean(xs).flatMap(m => mean(xs.map(x => math.pow(x - m, 2))))
 
-  def lift[A, B](f: A => B): Option[A] => Option[B] = _ map f
+  def lift[A, B](f: A => B): Option[A] => Option[B] = oa => oa.map(f)
 
-  def map2[A, B, C](oa: Option[A], ob: Option[B])(f: (A, B) => C): Option[C] =
+  def map2[A, B, C](o1: Option[A], o2: Option[B])(f: (A, B) => C): Option[C] =
     for {
-      a <- oa
-      b <- ob
+      a <- o1
+      b <- o2
     } yield f(a, b)
 
   def sequence[A](oas: List[Option[A]]): Option[List[A]] =

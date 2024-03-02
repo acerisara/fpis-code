@@ -18,7 +18,7 @@ class EitherTest extends AnyFunSuite {
 
   test("Either.flatMap") {
     error.flatMap(a => Right(a.toString)) should be(error)
-    Right(1).flatMap(a => Right((a * 2).toString)) should be(Right("2"))
+    Right(1).flatMap(a => Right(a * 2)) should be(Right(2))
   }
 
   test("Either.orElse") {
@@ -56,6 +56,7 @@ class EitherTest extends AnyFunSuite {
 
     Either.traverse(List.empty)(toString) should be(Right(List.empty))
     Either.traverse(List(1))(toString) should be(Right(List("1")))
+    Either.traverse(List(1, 1))(toString) should be(Right(List("1", "1")))
     Either.traverse(List(1, 2))(toString) should be(Left("boom!"))
   }
 

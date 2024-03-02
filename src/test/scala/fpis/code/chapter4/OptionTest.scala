@@ -74,7 +74,7 @@ class OptionTest extends AnyFunSuite {
     )
 
     Option.traverse(List(1, 2))(a =>
-      if (a == 1) Some(a.toString) else None
+      if (a == 2) Some(a.toString) else None
     ) should be(None)
   }
 
