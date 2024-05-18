@@ -175,7 +175,7 @@ object List {
   def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean =
     (sup, sub) match {
       case (Cons(_, _), Cons(_, _)) if startsWith(sup, sub) => true
-      case (Cons(_, xs1), _)                                => hasSubsequence(xs1, sub)
-      case _                                                => false
+      case (Cons(_, xs1), _) => hasSubsequence(xs1, sub)
+      case _                 => false
     }
 }

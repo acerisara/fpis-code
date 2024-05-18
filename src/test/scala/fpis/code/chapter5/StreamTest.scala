@@ -101,8 +101,10 @@ class StreamTest extends AnyFunSuite {
   test("Stream.from") {
     Stream.from(0).take(0).toList should be(List.empty)
     Stream.from(0).take(3).toList should be(List(0, 1, 2))
+    Stream.from(5).take(3).toList should be(List(5, 6, 7))
     Stream.fromU(0).take(0).toList should be(List.empty)
     Stream.fromU(0).take(3).toList should be(List(0, 1, 2))
+    Stream.fromU(5).take(3).toList should be(List(5, 6, 7))
   }
 
   test("Stream.fibs") {
