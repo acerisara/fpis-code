@@ -48,7 +48,7 @@ class DispenserTest extends AnyFunSuite {
     result._2 should be(Dispenser(locked = false, candies = 5, coins = 10))
   }
 
-  test("a dispenser that’s out of candy ignores all inputs") {
+  test("a dispenser that’s out of candies ignores all inputs") {
     val s = simulateDispenser(
       List(
         Coin,
