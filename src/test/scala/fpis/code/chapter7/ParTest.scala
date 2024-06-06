@@ -15,7 +15,7 @@ class ParTest extends AnyFunSuite {
 
   val es: ExecutorService = Executors.newFixedThreadPool(5)
 
-  class CustomThreadFactory() extends ThreadFactory {
+  class CustomThreadFactory extends ThreadFactory {
 
     val nThreads = new AtomicInteger()
 
