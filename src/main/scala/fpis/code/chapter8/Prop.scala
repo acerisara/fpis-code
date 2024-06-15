@@ -85,10 +85,6 @@ object Prop {
       prop.run(max, n, rng)
   }
 
-  def check(p: => Boolean): Prop = Prop { (_, _, _) =>
-    if (p) Proved else Falsified("()", 0)
-  }
-
   private def randomStream[A](g: Gen[A])(rng: RNG): LazyList[A] =
     LazyList.unfold(rng)(rng => Some(g.sample.run(rng)))
 
