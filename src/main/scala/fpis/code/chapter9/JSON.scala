@@ -2,9 +2,6 @@ package fpis.code.chapter9
 
 trait JSON
 
-// TODO:
-//  - Test coverage
-//  - Finish parser implementation
 object JSON {
   case object JNull extends JSON
   case class JNumber(get: Double) extends JSON
@@ -18,8 +15,6 @@ object JSON {
 
   def jsonParser[Parser[+_]](P: Parsers[Parser]): Parser[JSON] = {
     import P._
-
-    // WIP, grammar at https://www.json.org/json-en.html
 
     val curlyBracketOpen = char('{')
     val curlyBracketClosed = char('}')

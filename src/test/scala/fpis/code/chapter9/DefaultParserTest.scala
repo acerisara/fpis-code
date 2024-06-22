@@ -8,6 +8,8 @@ import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.junit.JUnitRunner
 
+import scala.io.Source
+
 @RunWith(classOf[JUnitRunner])
 class DefaultParserTest extends AnyFunSuite {
 
@@ -26,31 +28,22 @@ class DefaultParserTest extends AnyFunSuite {
 
   def obj(fields: Map[String, JSON]): JSON = JObject(fields)
 
-  test("Empty object") {
-    parse("{}") should be(emptyObject)
-    parse("{  }") should be(emptyObject)
-    parse(" {  } ") should be(emptyObject)
+  def loadFile(filename: String): String = {
+    val source = Source.fromInputStream(getClass.getResourceAsStream(filename))
 
-    parse("""
-        |{
-        |
-        |
-        |
-        |}
-        |""".stripMargin) should be(emptyObject)
+    try source.mkString
+    finally source.close()
+  }
+
+  test("Empty object") {
+    parse(loadFile("/empty-1.json")) should be(emptyObject)
+    parse(loadFile("/empty-2.json")) should be(emptyObject)
+    parse(loadFile("/empty-3.json")) should be(emptyObject)
+    parse(loadFile("/empty-4.json")) should be(emptyObject)
   }
 
   test("Object with literals") {
-    parse("""
-        |{
-        |  "a": 1.5123,
-        |  "b": "abc",
-        |  "c": true,
-        |
-        |  "d":    null,
-        |  "e": false
-        |
-        |}""".stripMargin) should be(
+    parse(loadFile("/literals-1.json")) should be(
       obj(
         Map(
           "a" -> JNumber(1.5123),
@@ -64,10 +57,7 @@ class DefaultParserTest extends AnyFunSuite {
   }
 
   test("Object with array") {
-    parse("""
-        |{
-        |  "a": []
-        |}""".stripMargin) should be(
+    parse(loadFile("/array-1.json")) should be(
       obj(
         Map(
           "a" -> emptyArray
@@ -75,10 +65,7 @@ class DefaultParserTest extends AnyFunSuite {
       )
     )
 
-    parse("""
-        |{
-        |  "a": [true, false, "abc", null, -152.234]
-        |}""".stripMargin) should be(
+    parse(loadFile("/array-2.json")) should be(
       obj(
         Map(
           "a" -> JArray(
@@ -94,10 +81,7 @@ class DefaultParserTest extends AnyFunSuite {
       )
     )
 
-    parse("""
-        |{
-        |  "a": [true, [1, 2, 3]]
-        |}""".stripMargin) should be(
+    parse(loadFile("/array-3.json")) should be(
       obj(
         Map(
           "a" -> JArray(
@@ -117,14 +101,8 @@ class DefaultParserTest extends AnyFunSuite {
     )
   }
 
-  test("Object with nested structure") {
-    parse("""
-        |{
-        |  "a": {
-        |    "b": 1,
-        |    "c": true
-        |  }
-        |}""".stripMargin) should be(
+  test("Nested objects") {
+    parse(loadFile("/nested-1.json")) should be(
       obj(
         Map(
           "a" -> obj(
