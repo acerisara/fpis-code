@@ -11,7 +11,7 @@ import org.scalatestplus.junit.JUnitRunner
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
-class DefaultParserTest extends AnyFunSuite {
+class JSONParserTest extends AnyFunSuite {
 
   val myParser = new DefaultParser
   val jsonParser: Parser[JSON] = JSON.jsonParser(myParser)
@@ -94,6 +94,20 @@ class DefaultParserTest extends AnyFunSuite {
                   JNumber(3)
                 )
               )
+            )
+          )
+        )
+      )
+    )
+
+    parse(loadFile("/array-4.json")) should be(
+      obj(
+        Map(
+          "a" -> JArray(
+            Vector(
+              JNumber(1),
+              JNumber(2),
+              JNumber(3)
             )
           )
         )

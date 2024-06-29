@@ -57,7 +57,7 @@ object JSON {
           .opt
           .map(_.getOrElse(emptyArray))
 
-      squareBracketOpen ~> values <~ squareBracketClosed
+      squareBracketOpen ~> ws ~> values <~ ws <~ squareBracketClosed
     }
 
     def jField: Parser[(String, JSON)] =

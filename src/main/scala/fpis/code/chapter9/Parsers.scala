@@ -1,7 +1,5 @@
 package fpis.code.chapter9
 
-import fpis.code.chapter8.Prop.forAll
-import fpis.code.chapter8.{Gen, Prop}
 import fpis.code.chapter9.Parsers.{escape, lineSep}
 
 import scala.language.implicitConversions
@@ -37,8 +35,8 @@ case class ParseError(stack: List[(Location, String)]) {
       .map { case (elem, i) =>
         val prefix = s"${"-" * (i + 1)}>"
         s"$prefix offset=${elem._1.offset} `${escape(
-            elem._1.toParse.headOption.map(_.toString).getOrElse("")
-          )}`: ${elem._2}"
+          elem._1.toParse.headOption.map(_.toString).getOrElse("")
+        )}`: ${elem._2}"
       }
       .mkString(lineSep)
 
@@ -97,12 +95,6 @@ trait Parsers[Parser[+_]] { self =>
   def opt[A](p: Parser[A]): Parser[Option[A]] =
     p.map(Some(_)) or succeed(None)
 
-  // Accessories
-  def digit: Parser[String] = """\d""".r
-
-  def thatManyChars(c: Char): Parser[String] =
-    flatMap(digit)(n => listOfN(n.toInt, char(c)).toString)
-
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps[A](p)
 
   implicit def asStringParser[A](a: A)(implicit
@@ -130,19 +122,6 @@ trait Parsers[Parser[+_]] { self =>
         a +: as
       }
     }
-  }
-
-  object Laws {
-    private def equal[A](p: Parser[A], p2: Parser[A])(in: Gen[String]): Prop =
-      forAll(in)(s => run(p)(s) == run(p2)(s))
-
-    def mapLaw[A](p: Parser[A])(in: Gen[String]): Prop =
-      equal(p, p.map(a => a))(in)
-
-    def succeedLaw[A]()(in: Gen[(String, A)]): Prop =
-      forAll(in) { case (s, a) =>
-        run(succeed(a))(s) == Right(a)
-      }
   }
 
 }
