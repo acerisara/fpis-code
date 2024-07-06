@@ -46,12 +46,13 @@ object Monoid {
   }
 
   def optionMonoid[A]: Monoid[Option[A]] = new Monoid[Option[A]] {
+    // We have the option of going either a1.orElse(a2) or a2.orElse(a1)
     override def op(a1: Option[A], a2: Option[A]): Option[A] = a1.orElse(a2)
     override def zero: Option[A] = None
   }
 
   def endoMonoid[A]: Monoid[A => A] = new Monoid[A => A] {
-    // Here we have the option of going either f(g) or g(f)
+    // We have the option of going either a1(a2) or a2(a1)
     override def op(a1: A => A, a2: A => A): A => A = a1.andThen(a2)
     override def zero: A => A = a => a
   }
@@ -79,7 +80,7 @@ object Monoid {
     as.foldLeft(m.zero)(m.op)
 
   def foldMap[A, B](as: List[A], m: Monoid[B])(f: A => B): B =
-    as.map(f).foldLeft(m.zero)(m.op)
+    as.foldLeft(m.zero)((b, a) => m.op(b, f(a)))
 
   def foldMapV[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): B = {
     if (as.isEmpty) m.zero
