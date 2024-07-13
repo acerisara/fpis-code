@@ -24,8 +24,8 @@ trait Monad[F[_]] extends Applicative[F] {
 
   def join[A](ffa: F[F[A]]): F[A] = flatMap(ffa)(fa => fa)
 
-  override def map[A, B](ma: F[A])(f: A => B): F[B] =
-    flatMap(ma)(a => unit(f(a)))
+  override def map[A, B](fa: F[A])(f: A => B): F[B] =
+    flatMap(fa)(a => unit(f(a)))
 
   override def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
     flatMap(fa)(a => map(fb)(b => f(a, b)))
@@ -150,9 +150,9 @@ object Monad {
 
     override def flatMap[A, B](fa: F[G[A]])(f: A => F[G[B]]): F[G[B]] =
       F.flatMap(fa) { ga =>
-        // This is G[F[G[B]]] and cannot be implemented in a general way
-        // val g = G.map(ga)(f)
-        // But this is turning G[F[G[B]]] into F[G[G[B]]] where the inner G layers can be flatten with join
+        val g = G.map(ga)(f)
+        // G.map(ga)(f) is G[F[G[B]]] and cannot be implemented in a general way,
+        // but this is turning G[F[G[B]]] into F[G[G[B]]] where the inner G layers can be flatten with join
         val t = T.traverse(ga)(f)(F)
         F.map(t)(G.join)
       }
