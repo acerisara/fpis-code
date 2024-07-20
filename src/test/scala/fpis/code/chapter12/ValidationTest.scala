@@ -21,10 +21,10 @@ class ValidationTest extends AnyFunSuite {
   test("collect all validation errors") {
     validateWebForm("", "01-01-1999", "") should be(
       Failure(
-        "Phone number must be 10 digits",
+        "Name cannot be empty",
         Vector(
           "Birthdate must be in the form yyyy-MM-dd",
-          "Name cannot be empty"
+          "Phone number must be 10 digits"
         )
       )
     )

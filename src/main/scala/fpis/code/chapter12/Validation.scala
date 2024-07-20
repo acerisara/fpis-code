@@ -1,7 +1,5 @@
 package fpis.code.chapter12
 
-import fpis.code.chapter11.Monad
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -25,10 +23,11 @@ object Validation {
     override def map2[A, B, C](fa: Validation[E, A], fb: Validation[E, B])(
         f: (A, B) => C
     ): Validation[E, C] = (fa, fb) match {
-      case (Success(a), Success(b))           => Success(f(a, b))
-      case (Failure(e1, t1), Failure(e2, t2)) => Failure(e2, e1 +: (t1 ++ t2))
-      case (_, Failure(e, t))                 => Failure(e, t)
-      case (Failure(e, t), _)                 => Failure(e, t)
+      case (Success(a), Success(b)) => Success(f(a, b))
+      case (Failure(h1, t1), Failure(h2, t2)) =>
+        Failure(h1, t1 ++ Vector(h2) ++ t2)
+      case (_, Failure(h, t)) => Failure(h, t)
+      case (Failure(h, t), _) => Failure(h, t)
     }
 
     override def unit[A](a: => A): Validation[E, A] = Success(a)
