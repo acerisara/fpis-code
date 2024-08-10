@@ -35,7 +35,9 @@ object ST {
 }
 
 sealed trait STRef[S, A] {
+
   protected var cell: A
+
   def read: ST[S, A] = ST(cell)
 
   def write(a: A): ST[S, Unit] = new ST[S, Unit] {
@@ -56,8 +58,10 @@ trait RunnableST[A] {
   def apply[S]: ST[S, A]
 }
 
-sealed abstract class STArray[S, A: Manifest] {
+sealed abstract class STArray[S, A] {
+
   protected def array: Array[A]
+
   def size: ST[S, Int] = ST(array.length)
 
   def write(i: Int, a: A): ST[S, Unit] = new ST[S, Unit] {
@@ -102,7 +106,9 @@ object STArray {
 }
 
 sealed abstract class STMap[S, K, V] {
+
   protected def table: scala.collection.mutable.HashMap[K, V]
+
   def size: ST[S, Int] = ST(table.size)
 
   def get(key: K): ST[S, Option[V]] = ST(table.get(key))
