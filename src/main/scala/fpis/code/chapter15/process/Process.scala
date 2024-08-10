@@ -59,7 +59,7 @@ trait Process[F[_], O] {
 
   def drain[O2]: Process[F, O2] = this match {
     case Halt(e)          => Halt(e)
-    case Emit(h, t)       => t.drain
+    case Emit(_, t)       => t.drain
     case Await(req, recv) => Await(req, recv andThen (_.drain))
   }
 

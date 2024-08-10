@@ -194,28 +194,6 @@ object Process1 {
       case _               => Emit(false)
     }
 
-  def processFile[A, B](
-      file: java.io.File,
-      process: Process1[String, A],
-      acc: B
-  )(g: (B, A) => B): IO[B] = IO {
-    @tailrec
-    def go(lines: Iterator[String], process: Process1[String, A], acc: B): B =
-      process match {
-        case Halt() => acc
-        case Await(recv) =>
-          val next =
-            if (lines.hasNext) recv(Some(lines.next()))
-            else recv(None)
-          go(lines, next, acc)
-        case Emit(h, t) => go(lines, t, g(acc, h))
-      }
-
-    val reader = io.Source.fromFile(file)
-    try go(reader.getLines(), process, acc)
-    finally reader.close
-  }
-
   def transformFile[A](
       input: java.io.File,
       output: java.io.File,
